@@ -12,16 +12,26 @@ export default {
     screens: {
       Root: {
         screens: {
-          TabOne: {
-            screens: {
-              TabOneScreen: 'one',
-            },
+          Home:{
+            screens:{
+              HomeScreen:'Home',
+            }
           },
-          TabTwo: {
-            screens: {
-              TabTwoScreen: 'two',
-            },
+          Jobs:{
+            screens:{
+              JobScreen:'Jobs'
+            }
           },
+          Chat:{
+            screens:{
+              ChatScreen:'Chat'
+            }
+          },
+          Setting:{
+            screens:{
+              SettingScreen:'Setting'
+            }
+          }
         },
       },
       NotFound: '*',

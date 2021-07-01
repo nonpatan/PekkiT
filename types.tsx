@@ -3,20 +3,33 @@
  * https://reactnavigation.org/docs/typescript/
  */
 
-export type RootStackParamList = {
+ export type RootStackParamList = {
   Root: undefined;
-  NotFound: undefined;
+  UserSetting:undefined;
+  UserSettingPasswordChanged:undefined;
+  UserProfile:undefined,
+  Test: undefined;
 };
 
 export type BottomTabParamList = {
-  TabOne: undefined;
-  TabTwo: undefined;
+  Home: undefined;
+  Jobs: undefined;
+  Chat: undefined;
+  Setting: undefined;
 };
 
-export type TabOneParamList = {
-  TabOneScreen: undefined;
-};
+export type TabHomeParamList = {
+  HomeScreen: undefined;
+}
 
-export type TabTwoParamList = {
-  TabTwoScreen: undefined;
-};
+export type TabJobsParamList = {
+  JobScreen: undefined;
+}
+
+export type TabChatParamList = {
+  ChatScreen: undefined;
+}
+
+export type TabSettingParamList = {
+  SettingScreen: undefined;
+}
