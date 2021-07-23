@@ -5,6 +5,7 @@ export default {
   light: {
     text: '#000',
     background: '#fff',
+    backgroundCard:'#fff',
     headerBackgroundColor: tintColorLight,
     tint: tintColorLight,
     tintHeader: 'green',
@@ -15,6 +16,7 @@ export default {
   dark: {
     text: '#fff',
     background: '#000',
+    backgroundCard: '#3f3d3d',
     tint: tintColorDark,
     tintHeader: tintColorDark,
     headerBackgroundColor: undefined,

@@ -23,6 +23,7 @@ import ResetPassword from '../screens/AuthScreens/ResetPasswordScreen';
 import UserSetting from '../screens/SettingScreens/UserSettingScreen';
 import UserSettingPasswordChanged from '../screens/SettingScreens/UserSettingPasswordChangedScreen';
 import UserProfile from '../screens/SettingScreens/UserProfileScreen';
+import UserAbout from '../screens/SettingScreens/UserAbout';
 import TestScreen from '../screens/TestScreen';
 
 /**
@@ -123,6 +124,7 @@ function RootNavigator() {
       <Stack.Screen name="UserSetting" component={UserSetting} options={{ title: 'ข้อมูลผู้ใช้', headerShown: true, }} />
       <Stack.Screen name="UserSettingPasswordChanged" component={UserSettingPasswordChanged} options={{ title: 'เปลี่ยนรหัสผ่าน', headerShown: true }} />
       <Stack.Screen name='UserProfile' component={UserProfile} options={{ title: 'ข้อมูลส่วนตัวผู้ใช้', headerShown: true }} />
+      <Stack.Screen name='UserAbout' component={UserAbout} options={{title:'เกี่ยวกับ',headerShown:true}} />
       <Stack.Screen name="Test" component={TestScreen} options={{ title: 'ทดสอบ', headerShown: true, headerTintColor: Colors[colorScheme].tintHeader, headerStyle: { backgroundColor: Colors[colorScheme].headerBackgroundColor } }} />
     </Stack.Navigator>
   );

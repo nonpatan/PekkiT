@@ -4,9 +4,9 @@ import {
 } from 'react-native';
 import { ListItem, Avatar, } from 'react-native-elements';
 import firebase from 'firebase';
-//import { connect } from 'react-redux';
-//import { changAvatar } from '../../redux/actions/index';
-//import fireBaseConnect from '../../redux/actions/FireBaseConnect';
+import { connect } from 'react-redux';
+import { changAvatar } from '../../redux/actions/index';
+import fireBaseConnect from '../../redux/actions/FireBaseConnect';
 import { ListItemContainer } from '../../components/ListItemTheme';
 import { Text } from '../../components/Themed';
 
@@ -16,7 +16,8 @@ interface Props {
     changAvatar: any,
 }
 
-export default class UserSettingScreen extends React.Component<Props>{
+class UserSettingScreen extends React.Component<Props>{
+
     state = {
         username: '',
         emailVerify: false,
@@ -24,10 +25,16 @@ export default class UserSettingScreen extends React.Component<Props>{
         photoURL: '',
     }
 
+    /**
+     * เรียก action changAvatar()
+     */
     onChangImage = () => {
         this.props.changAvatar();
     }
 
+    /**
+     * ทำการกำหนดค่าของผู้ใช้ และ ภาพ
+     */
     componentDidMount() {
         const user = firebase.auth().currentUser;
         let username, email, emailVerify, photoURL;
@@ -54,6 +61,9 @@ export default class UserSettingScreen extends React.Component<Props>{
         }
     }
 
+    /**
+     * กำหนดภาพใหม่ ถ้าภาพมีการเปลี่ยนแปลง
+     */
     componentDidUpdate() {
         if (this.props.avatarURL !== null) {
             if (this.state.photoURL !== this.props.avatarURL) {
@@ -64,19 +74,24 @@ export default class UserSettingScreen extends React.Component<Props>{
         }
     }
 
+    /**
+     * ไปหน้าเปลี่ยนรหัสผ่าน
+     */
     goToPasswordChanged = () => {
         this.props.navigation.navigate('UserSettingPasswordChanged');
     }
 
+    /**
+     * ทำการแจ้งเตื่อนเมื่อมีการส่ง Verify
+     */
     onSendEmailVerify = async () => {
-        console.log('SendEmailVerify');
-        /*try {
+        try {
             await fireBaseConnect.sendEmailVerify();
             Alert.alert('ข้อความแจ้ง', 'ระบบได้ส่ง Verify ไปยังอีเมลส์ของท่านแล้ว');
         }
         catch (err) {
             Alert.alert('ข้อผิดพลาด', err.message);
-        }*/
+        }
     }
 
     render() {
@@ -160,6 +175,19 @@ export default class UserSettingScreen extends React.Component<Props>{
         );
     }
 }
+
+//รับ state ปัจจุบัน แล้ว return เป็น object 
+//จากเดิม state เป็น ({auth}) เพราะใช้หลักการ Destructuring
+const mapStateToProps = (state: any) => {
+    const { avatarURL } = state.userSetting;//state ที่ต้องการใช้เอามาบางส่วนได้
+    //ถ้า return {email:email} จะเขียนได้เป็น {email} ได้สำหรับ object
+    return { avatarURL };
+};
+//connect ให้ทั้ง state และ action เป็น props ของ LoginForm 
+//As the second argument passed in to connect, mapDispatchToProps is used for dispatching actions to the store.
+export default connect(mapStateToProps, {
+    changAvatar,
+})(UserSettingScreen);
 
 const styles = StyleSheet.create({
     container: {

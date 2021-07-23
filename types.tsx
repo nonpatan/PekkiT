@@ -3,11 +3,12 @@
  * https://reactnavigation.org/docs/typescript/
  */
 
- export type RootStackParamList = {
+export type RootStackParamList = {
   Root: undefined;
-  UserSetting:undefined;
-  UserSettingPasswordChanged:undefined;
-  UserProfile:undefined,
+  UserSetting: undefined;
+  UserSettingPasswordChanged: undefined;
+  UserProfile: undefined,
+  UserAbout: undefined,
   Test: undefined;
 };
 

@@ -8,9 +8,6 @@ import {Picker} from '@react-native-picker/picker';
 
 import Color from '../constants/Colors';
 
-//import * as Location from 'expo-location';
-//import * as Permissions from 'expo-permissions';
-
 import { Button} from 'react-native-elements';
 
 import * as AddressDB from '../assets/raw_database.json';

@@ -6,8 +6,8 @@ import {
 import {InputTheme} from '../../components/InputTheme';
 import {ButtonTheme} from '../../components/ButtonTheme';
 import {FontAwesomeIcon} from '../../components/Icon';
-//import { connect } from 'react-redux';
-//import { newPasswordChanged, confirmNewPasswordChanged, newPasswordChangeToAccount } from '../../redux/actions/UserSettingAction';
+import { connect } from 'react-redux';
+import { newPasswordChanged, confirmNewPasswordChanged, newPasswordChangeToAccount } from '../../redux/actions/UserSettingAction';
 
 interface Props {
     navigation: any,
@@ -20,34 +20,30 @@ interface Props {
     loading_new_password:any,
 }
 
-export default class UserSettingPasswordChangedScreen extends React.Component<Props>{
+class UserSettingPasswordChangedScreen extends React.Component<Props>{
     state = {
         buttonDisable: true,
     }
 
     onNewPasswordChanged = (text: String) => {
-        console.log('newPasswordChanged');
-        /*this.props.newPasswordChanged(text);
-        this.buttonEnable();*/
+        this.props.newPasswordChanged(text);
+        this.buttonEnable();
     }
 
     onConfirmPasswordChanged = (text: String) => {
-        console.log('confirmPasswordCahgned');
-        /*this.props.confirmNewPasswordChanged(text);
-        this.buttonEnable();*/
+        this.props.confirmNewPasswordChanged(text);
+        this.buttonEnable();
     }
 
     onButtonPress = () => {
-        console.log('buttonPress');
-        //this.props.newPasswordChangeToAccount(this.props.new_password, this.props.confirm_new_password);
+        this.props.newPasswordChangeToAccount(this.props.new_password, this.props.confirm_new_password);
     }
 
     //ตรวจสอบว่ามีการใส่ในแต่ละช่องหมดหรือยัง
     buttonEnable = () => {
-        console.log('buttonEnable');
-        /*if ((this.props.new_password.length > 0) && (this.props.confirm_new_password.length > 0)) {
+        if ((this.props.new_password.length > 0) && (this.props.confirm_new_password.length > 0)) {
             this.setState({ buttonDisable: false, });
-        }*/
+        }
     }
 
     render() {
@@ -88,8 +84,22 @@ export default class UserSettingPasswordChangedScreen extends React.Component<Pr
 
         );
     }
-
 }
+
+//รับ state ปัจจุบัน แล้ว return เป็น object 
+//จากเดิม state เป็น ({auth}) เพราะใช้หลักการ Destructuring
+const mapStateToProps = (state:any) => {
+    const { new_password, confirm_new_password, loading_new_password, error_new_password, } = state.userSettingPasswordChange;//state ที่ต้องการใช้เอามาบางส่วนได้
+    //ถ้า return {email:email} จะเขียนได้เป็น {email} ได้สำหรับ object
+    return { new_password, confirm_new_password, loading_new_password, error_new_password, };
+};
+//connect ให้ทั้ง state และ action เป็น props ของ LoginForm 
+//As the second argument passed in to connect, mapDispatchToProps is used for dispatching actions to the store.
+export default connect(mapStateToProps, {
+    newPasswordChanged,
+    confirmNewPasswordChanged,
+    newPasswordChangeToAccount,
+})(UserSettingPasswordChangedScreen);
 
 const styles = StyleSheet.create({
     container: {

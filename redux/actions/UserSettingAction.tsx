@@ -21,9 +21,11 @@ import {
     USER_SETTING_USERPROFILE_AMPHOE_CHANGED,
     USER_SETTING_USERPROFILE_ADD_INIT,
     USER_SETTING_USERPROFILE_SAVEPROFILE_SUCCESS,
+    USER_SETTING_ABOUT_INIT,
+    USER_SETTING_ABOUT_SUCCESS,
+    USER_SETTING_ABOUT_FAIL,
 } from '../types';
 
-import * as Permissions from 'expo-permissions';
 import * as ImagePicker from 'expo-image-picker';
 import { Alert } from 'react-native';
 //import ImageEditor from "@react-native-community/image-editor";
@@ -35,11 +37,9 @@ import * as MediaLibrary from 'expo-media-library';
 export const changAvatar = () => {
     return async (dispatch: any) => {
         //บอกกับผู้ใช้ว่าจะใช้กล้อง
-        /*const { status: cameraRollPerm } = await Permissions.askAsync(
-            Permissions.CAMERA_ROLL);*/
-        const {status} = await MediaLibrary.requestPermissionsAsync();
+
+        const { status } = await MediaLibrary.requestPermissionsAsync();
         try {
-            // only if user allows permission to camera roll
             if (status === 'granted') {
                 //ถ้าผู้ใช้อนุญาติให้ใช้กล้อง
 
@@ -54,40 +54,8 @@ export const changAvatar = () => {
                     aspect: [4, 3],//การระบุอัตราส่วนภาพ หากผู้ใช้ได้รับอนุญาตให้แก้ไขภาพ
                 });
 
-                /*console.log(
-                  'ready to upload... pickerResult json:' + JSON.stringify(pickerResult)
-                );*/
+
                 if (!pickerResult.cancelled) {//ถ้าผู้ใช้ไม่ยกเลิกนะ returns { cancelled: true }.
-                    /**ของเก่าไม่ต้องใช้แระ ใช้ไม่ได้มีปัญหาเลยไปใช้ของ expo แทน ง่ายด้วย
-                     * ไปใช้ ImageManipulator แทนแล้ว
-                      var wantedMaxSize = 150;//กำหนดขนาดภาพสูงสุด
-                      var rawheight = pickerResult.height;//ความสูงของรูป
-                      var rawwidth = pickerResult.width;//ความกว้างของรูป
-                      //อัตราส่วนภาพ x:y aspect ratio กว้าง:สูง
-                      var ratio = rawwidth / rawheight;
-                      var wantedwidth = wantedMaxSize;//ความกว้างที่ต้องการ
-                      //คำนวนหาความสูง
-                      var wantedheight = wantedMaxSize / ratio;
-                      // check vertical or horizontal
-                      if (rawheight > rawwidth) {//ถ้าเป็นแนวตั้ง ค่า default มันแนวนอนอยู่แล้ว
-                        wantedwidth = wantedMaxSize * ratio;//คำนวนความกว้างใหม่
-                        wantedheight = wantedMaxSize;//ลดความสูงเท่ากับ 150
-                      }
-          
-                    let resizedUri = await new Promise((resolve, reject) => {
-                      //static cropImage(uri, cropData, success, failure)
-                      console.log(`PicerURI:${pickerResult.uri}`);
-                      ImageEditor.cropImage(pickerResult.uri,
-                        {
-                          offset: { x: 0, y: 0 },
-                          size: { width: pickerResult.width, height: pickerResult.height },
-                          displaySize: { width: wantedwidth, height: wantedheight },
-                          resizeMode: 'contain',
-                        },
-                        (uri) => resolve(uri),//the resultant cropped image will be stored in the ImageStore, and the URI returned in the success callback 
-                        () => reject('cannot be loaded/downloaded image'),//If the image cannot be loaded/downloaded, the failure callback will be called.
-                      );
-                    });****/
 
                     const cropOption = {
                         originX: 0, originY: 0, width: pickerResult.width, height: pickerResult.height
@@ -97,12 +65,11 @@ export const changAvatar = () => {
                         { compress: 1, format: ImageManipulator.SaveFormat.JPEG });
 
                     let uploadUrl = await fireBaseConnect.uploadImage(resizedUri.uri);//ได้ url ที่ upload ไป server
-                    //let uploadUrl = await firebaseSvc.uploadImageAsync(resizedUri);
 
-                    fireBaseConnect.updateAvatar(uploadUrl); //might failed
+                    fireBaseConnect.updateAvatar(uploadUrl); //ทำการ update photoURL ใน User ของเราที่ firebase
+
                     changAvatarSuccess(dispatch, uploadUrl);
                 }
-
             }
         } catch (err) {
             Alert.alert('Upload image error:', err.message);
@@ -132,9 +99,6 @@ export const newPasswordChangeToAccount = (newPassword: String, confirmPassword:
         //ตรวจสอบ Password
         if (newPassword === confirmPassword) {
             //ถ้ารหัสผ่านเหมือนกัน
-            /*fireBaseConnect.passwordChanged(newPassword) 
-            .then(()=>changNewPasswordSuccess(dispatch))
-            .catch((error)=>changeNewPasswordFail(dispatch,error.message));*/
             try {
                 await fireBaseConnect.passwordChanged(newPassword);
                 changNewPasswordSuccess(dispatch);
@@ -150,7 +114,9 @@ export const newPasswordChangeToAccount = (newPassword: String, confirmPassword:
 
     }
 }
-
+/**
+ * แสดงข้อมูลผู้ใช้ จาก users 
+ */
 export const showUserProfile = () => {
     return async (dispatch: any) => {
         try {
@@ -189,7 +155,7 @@ export const editUserProfile = (key: any, value: String) => {
                 //กำหนดค่าเริ่มต้นก่อน
                 inintEditProfile(dispatch);
 
-                let result = await fireBaseConnect.editUserProfile(key, value);
+                let result = await fireBaseConnect.editTechnicianProfile(key, value);
 
                 if (result === 'complete') {
                     editUserProfileSucess(dispatch, key, value);
@@ -252,7 +218,7 @@ export const editAddressUserProfile = (street: String, province: String, amphoe:
                 //กำหนดค่าเริ่มต้นก่อน
                 inintEditProfile(dispatch);
 
-                let result = await fireBaseConnect.editAddressUserProfile(street, province, amphoe, zipcode);
+                let result = await fireBaseConnect.editAddressTechnicianProfile(street, province, amphoe, zipcode);
 
                 if (result === 'complete') {
                     //เมื่อ update เรียบร้อย
@@ -296,7 +262,7 @@ export const saveUserProfile = (namePrefix: String, name: String, surName: Strin
             if (namePrefix !== '' && name !== '' && surName !== '' && tel !== '' && address.street !== '' && address.province !== '' && address.amphoe !== '' && address.zipcode !== '') {
                 initSaveProfile(dispatch);//กำหนดค่าเริ่มต้นก่อน
 
-                let result = await fireBaseConnect.saveTechnicianProfile(namePrefix, name, surName, tel, address); 
+                let result = await fireBaseConnect.saveTechnicianProfile(namePrefix, name, surName, tel, address);
                 if (result === 'complete') {
                     Alert.alert('การบันทึกข้อมูล', 'บันทึกข้อมูลของท่านเรียบร้อย');
                     saveUserProfileSuccess(dispatch);
@@ -308,6 +274,28 @@ export const saveUserProfile = (namePrefix: String, name: String, surName: Strin
         }
         catch (err) {
             Alert.alert('มีข้อผิดพลาด', err.message);
+        }
+    }
+}
+
+export const getAbout = () => {
+    return async (dispatch: any) => {
+        try {
+            //show loading
+            initGetAbout(dispatch);
+
+            let snapshot = await fireBaseConnect.getAbout();
+            if (snapshot === 'ไม่มีข้อมูล') {
+                //ถ้าไม่มีข้อมูล
+                loadAboutFail(dispatch, 'ไม่มีข้อมูล');
+            }
+            else {
+                //ถ้ามีข้อมูล
+                loadAboutSuccess(dispatch, snapshot);
+            }
+        }
+        catch (err) {
+            loadAboutFail(dispatch, err.message);
         }
     }
 }
@@ -391,5 +379,25 @@ const initSaveProfile = (dispatch: any) => {
 const saveUserProfileSuccess = (dispatch: any) => {
     dispatch({
         type: USER_SETTING_USERPROFILE_SAVEPROFILE_SUCCESS,
+    })
+}
+
+const initGetAbout = (dispatch: any) => {
+    dispatch({
+        type: USER_SETTING_ABOUT_INIT,
+    })
+}
+
+const loadAboutFail = (dispatch: any, value: String) => {
+    dispatch({
+        type: USER_SETTING_ABOUT_FAIL,
+        payload: value,
+    })
+}
+
+const loadAboutSuccess = (dispatch: any, value: String) => {
+    dispatch({
+        type: USER_SETTING_ABOUT_SUCCESS,
+        payload: value,
     })
 }

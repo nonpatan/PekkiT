@@ -9,8 +9,13 @@ class FireBaseConnect {
         //console.log('got image to upload. uri:' + uri);
         try {
             const user = firebase.auth().currentUser;
+
+            //ส่วนนี้จะเป็นการเตรียมภาพเพื่อ upload โดยภาพจะ upload เป็น blob stream
             const response = await fetch(uri);//fetch resources asynchronously across the network.
             const blob = await response.blob();//takes a Response stream and reads it to completion. It returns a promise that resolves with a Blob.
+            ///////////////////////////////////////////////////////////////
+
+            //ทำการ upload ภาพไปที่ storage firebase
             const ref = firebase
                 .storage()
                 .ref('avatar')
@@ -96,7 +101,11 @@ class FireBaseConnect {
         }
     }
 
-    //ทำการโหลดจากตารางข้อมูลผู้ใช้
+    /**
+     * ทำการ Query ข้อมูลผู้ใช้ จาก users 
+     * โดยจะทำการ Query แค่ครั้งเดียว
+     * @returns dataSnapshot
+     */
     loadUserProfile = async () => {
         const user = firebase.auth().currentUser;
         if (user !== null) {
@@ -307,7 +316,7 @@ class FireBaseConnect {
             query.on('value', snapshot => {
                 console.log('**********FirebaseConnect***************');
                 console.log(snapshot.val());
-                
+
                 if (snapshot.exists()) {
                     returnData = snapshot.val();
                 }
@@ -418,6 +427,27 @@ class FireBaseConnect {
         }
     }
 
+    //get About
+    getAbout = async () => {
+        let returnData = '';
+        try {
+            const rootRef = firebase.database().ref();
+            const aboutRef = rootRef.child(`about`);
+            aboutRef.on('value', snapshot => {
+                if (snapshot.exists()) {
+                    returnData = snapshot.val();
+                }
+                else {
+                    returnData = 'ไม่มีข้อมูล';
+                }
+            })
+        }
+        catch (err) {
+            throw err;
+        }
+        
+        return returnData;
+    }
 }
 
 

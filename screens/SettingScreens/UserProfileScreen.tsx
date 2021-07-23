@@ -13,10 +13,10 @@ import Address from '../../components/Address';
 import * as AddressDB from '../../assets/raw_database.json';
 import { connect } from 'react-redux';
 import _ from 'lodash';
-/*import {
+import {
     showUserProfile, namePrefixChanged, editUserProfile, nameChanged, surNameChanged, telChanged, streetChanged, provinceChanged, editAddressUserProfile,
     zipcodeChanged, amphoeChanged, saveUserProfile,
-} from '../../redux/actions/index';*/
+} from '../../redux/actions/index';
 
 interface Props {
     navigation: any,
@@ -45,7 +45,7 @@ interface Props {
     saveUserProfile: any,
 }
 
-export default class UserProfileScreen extends React.Component<Props>{
+class UserProfileScreen extends React.Component<Props>{
     state = {
         //เอาไว้แสดง Overlay
         isnamePrefixChoiceVisible: false,
@@ -110,7 +110,11 @@ export default class UserProfileScreen extends React.Component<Props>{
         //ทำการเรียก แสดงข้อมูลผู้ใช้
         this.props.showUserProfile();
     }
-
+    /**
+     * เอาไว้หาข้อมูลใน OBJ ของการ Query ข้อมูลผู้ใช้จาก users 
+     * @param find ระบุ key
+     * @returns value ตาม key ถ้าไม่มีจะแสดงว่า คลิกเพื่อเพิ่มข้อมูล
+     */
     findContent = (find: String) => {
         switch (find) {
             case 'คำนำหน้าชื่อ':
@@ -150,7 +154,10 @@ export default class UserProfileScreen extends React.Component<Props>{
                 }
         }
     }
-
+    /**
+     * ไว้แสดง คำนำหน้า ชื่อ
+     * @returns Picker คำนำหน้าชื่อ
+     */
     namePrefixListItem = () => {
         let listItem = ['นาย', 'นาง', 'นางสาว'];
         return (listItem.map((x, i) => {
@@ -176,6 +183,7 @@ export default class UserProfileScreen extends React.Component<Props>{
         }
     }
 
+    //ให้แสดงการเลือกจังหวัด
     onShowProvince = () => {
         this.setState({
             isAddressVisible: false,
@@ -183,6 +191,7 @@ export default class UserProfileScreen extends React.Component<Props>{
         });
     }
 
+    //ให้แสดงการเลือกอำเภอ
     onShowAmphoe = () => {
         //ตรวจสอบว่าเลือกจังหวัดหรือยัง
         if (this.props.address.province === '') {
@@ -209,6 +218,7 @@ export default class UserProfileScreen extends React.Component<Props>{
 
     }
 
+    //เมื่อกด OK เลือกจังหวัดแล้ว ให้แสดงการเลือก อำเภอเลย
     onProviceOkPress = () => {
         this.setState({
             isProvince: false,
@@ -262,6 +272,7 @@ export default class UserProfileScreen extends React.Component<Props>{
         this.props.amphoeChanged(amphoe);
     }
 
+    //ไว้สำหรับในกรณีที่เพิ่มข้อมูลผู้ใช้ใหม่เลย
     onButtonAddPress = () => {
         this.props.saveUserProfile(this.props.namePrefix, this.props.name, this.props.surName, this.props.tel, this.props.address);
     }
@@ -512,7 +523,6 @@ export default class UserProfileScreen extends React.Component<Props>{
                                 />
                                 <Input
                                     value={this.props.address.amphoe}
-                                    //onChangeText={text => this.props.addressChanged(text)}
                                     onFocus={this.onShowAmphoe.bind(this)}
                                     inputStyle={styles.inputStyle}
                                     label='อำเภอ/เขต'
@@ -520,7 +530,6 @@ export default class UserProfileScreen extends React.Component<Props>{
                                 />
                                 <Input
                                     value={`${this.props.address.zipcode}`}
-                                    //onChangeText={text => this.props.addressChanged(text)}
                                     inputStyle={styles.inputStyle}
                                     label='รหัสไปรษณีย์'
                                     labelStyle={styles.inputTitleStyle}
@@ -614,6 +623,20 @@ export default class UserProfileScreen extends React.Component<Props>{
         );
     }
 }
+
+//รับ state ปัจจุบัน แล้ว return เป็น object 
+//จากเดิม state เป็น ({auth}) เพราะใช้หลักการ Destructuring
+const mapStateToProps = (state: any) => {
+    const { namePrefix, name, surName, tel, address, userProfileExists, userProfileLoading, userProfileAddLoading, userProfileEditLoading, userProfileErrMessage, userProfileEditErrMessage } = state.userProfile;//state ที่ต้องการใช้เอามาบางส่วนได้
+    //ถ้า return {email:email} จะเขียนได้เป็น {email} ได้สำหรับ object
+    return { namePrefix, name, surName, tel, address, userProfileExists, userProfileLoading, userProfileAddLoading, userProfileEditLoading, userProfileErrMessage, userProfileEditErrMessage };
+};
+//connect ให้ทั้ง state และ action เป็น props ของ LoginForm 
+//As the second argument passed in to connect, mapDispatchToProps is used for dispatching actions to the store.
+export default connect(mapStateToProps, {
+    showUserProfile, namePrefixChanged, editUserProfile, nameChanged, surNameChanged, telChanged, streetChanged, provinceChanged, editAddressUserProfile,
+    zipcodeChanged, amphoeChanged, saveUserProfile,
+})(UserProfileScreen);
 
 const styles = StyleSheet.create({
     container: {
