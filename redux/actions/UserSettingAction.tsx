@@ -33,6 +33,7 @@ import * as ImageManipulator from "expo-image-manipulator";
 import fireBaseConnect from '../actions/FireBaseConnect';
 
 import * as MediaLibrary from 'expo-media-library';
+import firebase from 'firebase';
 
 export const changAvatar = () => {
     return async (dispatch: any) => {
@@ -115,22 +116,32 @@ export const newPasswordChangeToAccount = (newPassword: String, confirmPassword:
     }
 }
 /**
- * แสดงข้อมูลผู้ใช้ จาก users 
+ * แสดงข้อมูลผู้ใช้ จาก Technician
  */
 export const showUserProfile = () => {
     return async (dispatch: any) => {
         try {
             //show loading
             initLoadingProfile(dispatch);
-
-            let snapshot = await fireBaseConnect.loadTechnicianProfile();
-            if (snapshot === 'ไม่มีข้อมูล') {
-                //ถ้าไม่มีข้อมูล
-                loadUserProfileFail(dispatch, 'ไม่มีข้อมูล');
+            
+            const user = firebase.auth().currentUser;
+            if (user !== null) {
+                    //ทำการโหลดข้อมูลช่าง
+                    const database = firebase.database().ref(`technician/${user.uid}`);
+                    database.on('value', snapshot => {
+                        
+                        if (snapshot.exists()) {
+                            //ถ้ามีข้อมูล
+                            loadUserProfileSuccess(dispatch, snapshot.val());
+                        }
+                        else {
+                            //ถ้าไม่มีข้อมูล
+                            loadUserProfileFail(dispatch, 'ไม่มีข้อมูล');
+                        }
+                    }); 
             }
-            else {
-                //ถ้ามีข้อมูล
-                loadUserProfileSuccess(dispatch, snapshot);
+            else{
+                loadUserProfileFail(dispatch, 'ไม่มี currentUser');
             }
         }
         catch (err) {
@@ -154,7 +165,7 @@ export const editUserProfile = (key: any, value: String) => {
             if (key !== '' && value !== '') {
                 //กำหนดค่าเริ่มต้นก่อน
                 inintEditProfile(dispatch);
-
+                
                 let result = await fireBaseConnect.editTechnicianProfile(key, value);
 
                 if (result === 'complete') {
@@ -284,15 +295,20 @@ export const getAbout = () => {
             //show loading
             initGetAbout(dispatch);
 
-            let snapshot = await fireBaseConnect.getAbout();
-            if (snapshot === 'ไม่มีข้อมูล') {
-                //ถ้าไม่มีข้อมูล
-                loadAboutFail(dispatch, 'ไม่มีข้อมูล');
-            }
-            else {
-                //ถ้ามีข้อมูล
-                loadAboutSuccess(dispatch, snapshot);
-            }
+            //let snapshot = await fireBaseConnect.getAbout();
+
+            const rootRef = firebase.database().ref();
+            const aboutRef = rootRef.child(`about`);
+            aboutRef.on('value', snapshot => {
+                if (snapshot.exists()) {
+                    //ถ้ามีข้อมูล
+                    loadAboutSuccess(dispatch, snapshot.val());
+                }
+                else {
+                    //ถ้าไม่มีข้อมูล
+                    loadAboutFail(dispatch, 'ไม่มีข้อมูล');
+                }
+            })
         }
         catch (err) {
             loadAboutFail(dispatch, err.message);

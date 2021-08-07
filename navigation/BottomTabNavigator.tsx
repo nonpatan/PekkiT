@@ -40,6 +40,7 @@ export default function BottomTabNavigator() {
         name="Jobs"
         component={TabJobsNavigator}
         options={{
+          title: 'งาน',
           tabBarIcon: ({ color }) => <TabBarIcon name="ios-code" color={color} />,
         }}
       />

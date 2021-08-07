@@ -11,9 +11,11 @@ import {
     JOB_CONFIRM_INIT,
     JOB_CONFIRM_SUCCESS,
     JOB_CONFIRM_FAIL,
+    JOB_DETAIL_RESET_LOADING,
 } from '../types';
 import _ from 'lodash';
-import fireBaseConnect from '../actions/FireBaseConnect';//กลับมาใช้ firebaseConnect อีกครั้ง
+import fireBaseConnect from '../actions/FireBaseConnect';
+import firebase from 'firebase';
 
 /**แสดงรายการที่ลูกค้าจองไว้ */
 
@@ -23,125 +25,187 @@ export const jobsShowList = (jobType: number) => {
         jobShowList_init(dispatch);
 
         try {
-            if (jobType == 0) {
-                let data: any = await fireBaseConnect.jobTechnicianShowList('serviceBooking');
-                console.log('********JobAction**********');
-                console.log(data);
-                if (data !== 'ไม่มีข้อมูล') {
-                    //ถ้ามีข้อมูล
-                    let jobFillter = _.filter(data, (o) => { return (o.serviceStatus == 'รอดำเนินการ' || o.serviceStatus == 'รอยืนยัน') });//ผลลัพธ์จะเป็น Array
+            const user = firebase.auth().currentUser;
+            if (user !== null) {
+                if (jobType == 0) {
+                    //บริการ
+                    /////////////////////////////////////////////////////////////////////////////
+                    let data: any;
 
-                    if (!Array.isArray(jobFillter) || !jobFillter.length) {
-                        //ถ้า Array ว่าง
-                        //ถ้าไม่มีข้อมูล
-                        jobShowList_fail(dispatch, 'ไม่มีข้อมูล รอดำเนินการ หรือ รอยืนยัน');
-                    }
-                    else {
-                        //ถ้ามีข้อมูล
-                        let jobArr = await fireBaseConnect.fineStatusObject(data, jobType);
+                    const rootRef = firebase.database().ref();
+                    const serviceRef = rootRef.child('serviceBooking');
+                    const query = serviceRef.orderByChild('technicianID').equalTo(user.uid);
+                    query.on('value', async snapshot => {
+                        if (snapshot.exists()) {
+                            data = snapshot.val();
+                            if ((data !== 'ไม่มีข้อมูล') && (data !== undefined)) {
+                                //ถ้ามีข้อมูล
+                                let jobFillter = _.filter(data, (o) => { return (o.serviceStatus == 'รอดำเนินการ' || o.serviceStatus == 'รอยืนยัน') });//ผลลัพธ์จะเป็น Array
 
-                        if (jobArr !== undefined) {
-                            jobShowList_success(dispatch, jobArr);
+                                if (!Array.isArray(jobFillter) || !jobFillter.length) {
+                                    //ถ้า Array ว่าง
+                                    //ถ้าไม่มีข้อมูล
+                                    jobShowList_fail(dispatch, 'ไม่มีข้อมูล รอดำเนินการ หรือ รอยืนยัน');
+                                }
+                                else {
+                                    //ถ้ามีข้อมูล
+                                    ////////////////////////////////////////////////////////////////////
+                                    let jobArr = await fireBaseConnect.fineStatusObject(data, jobType);
+                                    ///////////////////////////////////////////////////////////////////
+                                    if (jobArr !== undefined) {
+                                        jobShowList_success(dispatch, jobArr);
+                                    }
+                                    else {
+                                        jobShowList_fail(dispatch, 'ไม่มีข้อมูล');
+                                    }
+                                }
+                            }
+                            else {
+                                //ถ้าไม่มีข้อมูล
+                                jobShowList_fail(dispatch, 'ไม่มีข้อมูล');
+                            }
+                        }
+                        else {
+                            //ถ้าไม่มีข้อมูล
+                            jobShowList_fail(dispatch, 'ไม่มีข้อมูล');
+                        }
+                    })
+                }
+                else if (jobType == 2) {
+                    //ประวัติบริการ
+                    //////////////////////////////////////////////////////////////////////////////
+                    let data: any;
+
+                    const rootRef = firebase.database().ref();
+                    const serviceRef = rootRef.child('serviceBooking');
+                    const query = serviceRef.orderByChild('technicianID').equalTo(user.uid);
+                    query.on('value', async snapshot => {
+                        if (snapshot.exists()) {
+                            data = snapshot.val();
+                            if ((data !== 'ไม่มีข้อมูล') && (data !== undefined)) {
+                                //ถ้ามีข้อมูล
+                                let jobFillter = _.filter(data, (o) => { return (o.serviceStatus == 'ยกเลิก' || o.serviceStatus == 'เสร็จสิ้น' || o.serviceStatus == 'ไม่สามารถรับงานได้') });//ผลลัพธ์จะเป็น Array
+
+                                if (!Array.isArray(jobFillter) || !jobFillter.length) {
+                                    //ถ้า Array ว่าง
+                                    //ถ้าไม่มีข้อมูล
+                                    jobShowList_fail(dispatch, 'ไม่มีข้อมูล ยกเลิก หรือ เสร็จสิ้น');
+                                }
+                                else {
+                                    //ถ้ามีข้อมูล
+                                    ///////////////////////////////////////////////////////////////////
+                                    let jobArr = await fireBaseConnect.fineStatusObject(data, jobType);
+                                    ///////////////////////////////////////////////////////////////////
+                                    if (jobArr !== undefined) {
+                                        jobShowList_success(dispatch, jobArr);
+                                    }
+                                    else {
+                                        jobShowList_fail(dispatch, 'ไม่มีข้อมูล');
+                                    }
+                                }
+                            }
+                            else {
+                                //ถ้าไม่มีข้อมูล
+                                jobShowList_fail(dispatch, 'ไม่มีข้อมูล');
+                            }
                         }
                         else {
                             jobShowList_fail(dispatch, 'ไม่มีข้อมูล');
                         }
-                    }
+                    })
                 }
-                else {
-                    //ถ้าไม่มีข้อมูล
-                    jobShowList_fail(dispatch, 'ไม่มีข้อมูล');
-                }
-            }
-            else if (jobType == 2) {
-                let data: any = await fireBaseConnect.jobTechnicianShowList('serviceBooking');
-                if (data !== 'ไม่มีข้อมูล') {
-                    //ถ้ามีข้อมูล
-                    let jobFillter = _.filter(data, (o) => { return (o.serviceStatus == 'ยกเลิก' || o.serviceStatus == 'เสร็จสิ้น') });//ผลลัพธ์จะเป็น Array
+                else if (jobType == 1) {
+                    //ถ้าเป็น ซ่อม
+                    /////////////////////////////////////////////////////////////////////////////
+                    let data: any;
 
-                    if (!Array.isArray(jobFillter) || !jobFillter.length) {
-                        //ถ้า Array ว่าง
-                        //ถ้าไม่มีข้อมูล
-                        jobShowList_fail(dispatch, 'ไม่มีข้อมูล ยกเลิก หรือ เสร็จสิ้น');
-                    }
-                    else {
-                        //ถ้ามีข้อมูล
-                        let jobArr = await fireBaseConnect.fineStatusObject(data, jobType);
+                    const rootRef = firebase.database().ref();
+                    const serviceRef = rootRef.child('repairBooking');
+                    const query = serviceRef.orderByChild('technicianID').equalTo(user.uid);
+                    query.on('value', async snapshot => {
+                        if (snapshot.exists()) {
+                            data = snapshot.val();
+                            if ((data !== 'ไม่มีข้อมูล') && (data !== undefined)) {
+                                //ถ้ามีข้อมูล
+                                let jobFillter = _.filter(data, (o) => { return (o.repairStatus == 'รอดำเนินการ' || o.repairStatus == 'รอยืนยัน') });//ผลลัพธ์จะเป็น Array
 
-                        if (jobArr !== undefined) {
-                            jobShowList_success(dispatch, jobArr);
+                                if (!Array.isArray(jobFillter) || !jobFillter.length) {
+                                    //ถ้า Array ว่าง
+                                    //ถ้าไม่มีข้อมูล
+                                    jobShowList_fail(dispatch, 'ไม่มีข้อมูล รอดำเนินการ หรือ รอยืนยัน');
+                                }
+                                else {
+                                    //ถ้ามีข้อมูล
+                                    ////////////////////////////////////////////////////////////////////
+                                    let jobArr = await fireBaseConnect.fineStatusObject(data, jobType);
+                                    ////////////////////////////////////////////////////////////////////
+                                    if (jobArr !== undefined) {
+                                        jobShowList_success(dispatch, jobArr);
+                                    }
+                                    else {
+                                        jobShowList_fail(dispatch, 'ไม่มีข้อมูล');
+                                    }
+                                }
+                            }
+                            else {
+                                //ถ้าไม่มีข้อมูล
+                                jobShowList_fail(dispatch, 'ไม่มีข้อมูล');
+                            }
                         }
                         else {
+                            //ถ้าไม่มีข้อมูล
                             jobShowList_fail(dispatch, 'ไม่มีข้อมูล');
                         }
-                    }
+                    })
                 }
-                else {
-                    //ถ้าไม่มีข้อมูล
-                    jobShowList_fail(dispatch, 'ไม่มีข้อมูล');
-                }
-            }
-            else if (jobType == 1) {
-                //ถ้าเป็น ซ่อม
-                let data: any = await fireBaseConnect.jobTechnicianShowList('repairBooking');
+                else if (jobType == 3) {
+                    //ประวัติซ่อม
+                    /////////////////////////////////////////////////////////////////////////////
+                    let data: any;
 
-                if (data !== 'ไม่มีข้อมูล') {
-                    //ถ้ามีข้อมูล
-                    let jobFillter = _.filter(data, (o) => { return (o.repairStatus == 'รอดำเนินการ' || o.repairStatus == 'รอยืนยัน') });//ผลลัพธ์จะเป็น Array
+                    const rootRef = firebase.database().ref();
+                    const serviceRef = rootRef.child('repairBooking');
+                    const query = serviceRef.orderByChild('technicianID').equalTo(user.uid);
+                    query.on('value', async snapshot => {
+                        if (snapshot.exists()) {
+                            data = snapshot.val();
+                            if ((data !== 'ไม่มีข้อมูล') && (data !== undefined)) {
+                                //ถ้ามีข้อมูล
+                                let jobFillter = _.filter(data, (o) => { return (o.repairStatus == 'ยกเลิก' || o.repairStatus == 'เสร็จสิ้น' || o.repairStatus == 'ไม่สามารถรับงานได้') });//ผลลัพธ์จะเป็น Array
 
-                    if (!Array.isArray(jobFillter) || !jobFillter.length) {
-                        //ถ้า Array ว่าง
-                        //ถ้าไม่มีข้อมูล
-                        jobShowList_fail(dispatch, 'ไม่มีข้อมูล รอดำเนินการ หรือ รอยืนยัน');
-                    }
-                    else {
-                        //ถ้ามีข้อมูล
-                        let jobArr = await fireBaseConnect.fineStatusObject(data, jobType);
-
-                        if (jobArr !== undefined) {
-                            jobShowList_success(dispatch, jobArr);
+                                if (!Array.isArray(jobFillter) || !jobFillter.length) {
+                                    //ถ้า Array ว่าง
+                                    //ถ้าไม่มีข้อมูล
+                                    jobShowList_fail(dispatch, 'ไม่มีข้อมูล ยกเลิก หรือ เสร็จสิ้น');
+                                }
+                                else {
+                                    //ถ้ามีข้อมูล
+                                    ////////////////////////////////////////////////////////////////////
+                                    let jobArr = await fireBaseConnect.fineStatusObject(data, jobType);
+                                    ////////////////////////////////////////////////////////////////////
+                                    if (jobArr !== undefined) {
+                                        jobShowList_success(dispatch, jobArr);
+                                    }
+                                    else {
+                                        jobShowList_fail(dispatch, 'ไม่มีข้อมูล');
+                                    }
+                                }
+                            }
+                            else {
+                                //ถ้าไม่มีข้อมูล
+                                jobShowList_fail(dispatch, 'ไม่มีข้อมูล');
+                            }
                         }
                         else {
+                            //ถ้าไม่มีข้อมูล
                             jobShowList_fail(dispatch, 'ไม่มีข้อมูล');
                         }
-                    }
-                }
-                else {
-                    //ถ้าไม่มีข้อมูล
-                    jobShowList_fail(dispatch, 'ไม่มีข้อมูล');
+                    })
                 }
             }
-            else if (jobType == 3) {
-                //ประวัติซ่อม
-                let data: any = await fireBaseConnect.jobTechnicianShowList('repairBooking');
-
-                if (data !== 'ไม่มีข้อมูล') {
-                    //ถ้ามีข้อมูล
-                    let jobFillter = _.filter(data, (o) => { return (o.repairStatus == 'ยกเลิก' || o.repairStatus == 'เสร็จสิ้น') });//ผลลัพธ์จะเป็น Array
-
-                    if (!Array.isArray(jobFillter) || !jobFillter.length) {
-                        //ถ้า Array ว่าง
-                        //ถ้าไม่มีข้อมูล
-                        jobShowList_fail(dispatch, 'ไม่มีข้อมูล ยกเลิก หรือ เสร็จสิ้น');
-                    }
-                    else {
-                        //ถ้ามีข้อมูล
-                        let jobArr = await fireBaseConnect.fineStatusObject(data, jobType);
-
-                        if (jobArr !== undefined) {
-                            jobShowList_success(dispatch, jobArr);
-                        }
-                        else {
-                            jobShowList_fail(dispatch, 'ไม่มีข้อมูล');
-                        }
-                    }
-                }
-                else {
-                    //ถ้าไม่มีข้อมูล
-                    jobShowList_fail(dispatch, 'ไม่มีข้อมูล');
-                }
+            else {
+                jobShowList_fail(dispatch, 'ไม่มี currentUser');
             }
-
         }
         catch (err) {
             jobShowList_fail(dispatch, err.message);
@@ -149,58 +213,90 @@ export const jobsShowList = (jobType: number) => {
     }
 }
 
-/**ทำการ query ลูกค้า ตาม ID เพื่อจะได้แสดงผลแบบ realtime เลย */
+/**
+ * ทำการ query รายการที่จองไว้ และรายละเอียดลูกค้าที่จอง
+ * @param jobID รหัสงานที่จอง
+ * @param selectedIndex ประเภทงานที่จอง
+ * @returns Obj งานที่จอง และ รายละเอียดลูกค้า
+ */
 export const jobShowDetailById = (jobID: any, selectedIndex: number) => {
     return async (dispatch: any) => {
+
         //เริ่มต้น
         jobShowDetail_init(dispatch);
+
         try {
             if ((selectedIndex == 0) || (selectedIndex == 2)) {
                 //ถ้าเป็นบริการ
-
                 //ทำการ Query Job by ID
-                let jobDetail: any = await fireBaseConnect.getJobByID(jobID, 'serviceBooking');
-                if (jobDetail !== 'ไม่มีข้อมูล') {
-                    //ถ้ามีข้อมูลงาน
+                ///////////////////////////////////////////////////////////////////////////////
+                let jobDetail: any;
+                const rootRef = firebase.database().ref();
+                const jobRef = rootRef.child(`serviceBooking/${jobID}`);
+                jobRef.on('value', async snapshot => {
+                    if (snapshot.exists()) {
+                        //ถ้ามีข้อมูล
+                        jobDetail = snapshot.val();
 
-                    //ทำการ Query Customer by ID
-                    let customerData = await fireBaseConnect.getCustomerProfileByID(jobID.userID);
-                    if (customerData !== 'ไม่มีข้อมูล') {
-                        //ทำการใส่ข้อมูลลูกค้าดังกล่าวไปในงานเลยแต่ไม่เพิ่มในฐานข้อมูลนะ
-                        jobDetail = { ...jobDetail, "customerSelected": customerData };
-                        jobShowDetailSuccess(dispatch, jobDetail);
+                        //หาข้อมูลลูกค้าจากตาราง user
+                        const userRef = firebase.database().ref(`users/${jobDetail.userID}`);
+                        userRef.on('value', snapshot => {
+                            if (snapshot.exists()) {
+
+                                //ถ้ามีข้อมูล
+                                let customerData = snapshot.val();
+                                jobDetail = { ...jobDetail, "customerSelected": customerData };
+
+                                jobShowDetailSuccess(dispatch, jobDetail);
+                            }
+                            else {
+                                //ถ้าไม่มีข้อมูลลูกค้า
+                                jobShowDetailErr(dispatch, 'ไม่มีลูกค้าในฐานข้อมูล');
+                            }
+                        });
                     }
                     else {
-                        jobShowDetailErr(dispatch, 'ไม่มีลูกค้าในฐานข้อมูล');
-                    }
+                        //ถ้าไม่มีข้อมูล
+                        jobShowDetailErr(dispatch, 'ไม่มีรายการบริการนี้');
 
-                } else {
-                    //ถ้าไม่มีข้อมูลงาน
-                    jobShowDetailErr(dispatch, 'ไม่มีรายการบริการนี้');
-                }
+                    }
+                });
 
             }
             else {
+
                 //ถ้าเป็นซ่อม
+                //////////////////////////////////////////////////////////////////////////////
+                let jobDetail: any;
+                const rootRef = firebase.database().ref();
+                const jobRef = rootRef.child(`repairBooking/${jobID}`);
+                jobRef.on('value', async snapshot => {
+                    if (snapshot.exists()) {
+                        //ถ้ามีข้อมูล
+                        jobDetail = snapshot.val();
 
-                let jobDetail: any = await fireBaseConnect.getJobByID(jobID, 'repairBooking');
-                if (jobDetail !== 'ไม่มีข้อมูล') {
-                    //ถ้ามีงาน
-
-                    //ทำการ Query Customer by ID
-                    let customerData = await fireBaseConnect.getCustomerProfileByID(jobID.userID);
-                    if (customerData !== 'ไม่มีข้อมูล') {
-                        //ทำการใส่ข้อมูลลูกค้าดังกล่าวไปในงานเลยแต่ไม่เพิ่มในฐานข้อมูลนะ
-                        jobDetail = { ...jobDetail, "customerSelected": customerData };
-                        jobShowDetailSuccess(dispatch, jobDetail);
+                        //ทำการ Query Customer by ID
+                        const userRef = firebase.database().ref(`users/${jobDetail.userID}`);
+                        userRef.on('value', snapshot => {
+                            if (snapshot.exists()) {
+                                //ถ้ามีข้อมูล
+                                let customerData = snapshot.val();
+                                jobDetail = { ...jobDetail, "customerSelected": customerData };
+                                jobShowDetailSuccess(dispatch, jobDetail);
+                            }
+                            else {
+                                //ถ้าไม่มีข้อมูล
+                                jobShowDetailErr(dispatch, 'ไม่มีลูกค้าในฐานข้อมูล');
+                            }
+                        });
                     }
                     else {
-                        jobShowDetailErr(dispatch, 'ไม่มีลูกค้าในฐานข้อมูล');
+                        //ถ้าไม่มีข้อมูล
+                        jobShowDetailErr(dispatch, 'ไม่มีรายการบริการนี้');
+
                     }
-                } else {
-                    //ถ้าไม่มีข้อมูลงาน
-                    jobShowDetailErr(dispatch, 'ไม่มีรายการบริการนี้');
-                }
+                });
+                //////////////////////////////////////////////////////////////////////////////
             }
         }
         catch (err) {
@@ -246,17 +342,19 @@ export const jobConfirm = (jobID: any, selectedIndex: number,) => {
         try {
             if ((selectedIndex == 0) || (selectedIndex == 2)) {
                 /////////////////ส่วนบริการ//////////////////
-                let jobCancelStatus = await fireBaseConnect.setStatusJob(jobID, 'serviceBooking', 'serviceStatus', 'ยืนยันรับงาน');
+                let jobCancelStatus = await fireBaseConnect.setStatusJob(jobID, 'serviceBooking', 'serviceStatus', 'รอดำเนินการ');
                 if (jobCancelStatus == 'เสร็จสิ้น') {
                     jobConfirm_Success(dispatch);
                 }
+
             }
             else {
                 /////////////////ส่วนซ่อม//////////////////
-                let jobCancelStatus = await fireBaseConnect.setStatusJob(jobID, 'repairBooking', 'repairStatus', 'ยืนยันรับงาน');
+                let jobCancelStatus = await fireBaseConnect.setStatusJob(jobID, 'repairBooking', 'repairStatus', 'รอดำเนินการ');
                 if (jobCancelStatus == 'เสร็จสิ้น') {
                     jobConfirm_Success(dispatch);
                 }
+
             }
         }
         catch (err) {
@@ -265,6 +363,13 @@ export const jobConfirm = (jobID: any, selectedIndex: number,) => {
     }
 }
 
+export const resetLoading = () => {
+    return (dispatch: any) => {
+        dispatch({
+            type: JOB_DETAIL_RESET_LOADING,
+        })
+    }
+}
 //////////////////////////////////// Action Creator///////////////////////////////////////////
 const jobShowList_init = (dispatch: any) => {
     dispatch({

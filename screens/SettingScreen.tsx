@@ -1,9 +1,8 @@
 import * as React from 'react';
 import { StyleSheet, TouchableOpacity, Platform, View, Alert } from 'react-native';
-import { ListItem, Button, Avatar } from 'react-native-elements'
+import { Button, Avatar } from 'react-native-elements'
 import { IoniconsIcon } from '../components/Icon';
-import { ListItemContainer } from '../components/ListItemTheme';
-import { Text } from '../components/Themed';
+import { ListItemTheme,ListItemContent,ListItemChevron,ListItemTitle } from '../components/ListItemTheme';
 import firebase from 'firebase';
 import { connect } from 'react-redux';
 
@@ -104,18 +103,18 @@ class SettingScreen extends React.Component<Props>{
         <View>
           {
             menuList.map((item, i) => (
-              <ListItemContainer
+              <ListItemTheme
                 key={i}
                 bottomDivider
                 Component={TouchableOpacity}
                 onPress={this.goToScreen.bind(this, item.toScreen)}
               >
                 <IoniconsIcon name={Platform.OS === 'ios' ? item.iosIcon : item.androidIcon} size={26} />
-                <ListItem.Content>
-                  <ListItem.Title ><Text style={styles.titleList}>{item.title}</Text></ListItem.Title>
-                </ListItem.Content>
-                <ListItem.Chevron />
-              </ListItemContainer>
+                <ListItemContent>
+                  <ListItemTitle style={styles.titleList}>{item.title}</ListItemTitle>
+                </ListItemContent>
+                <ListItemChevron />
+              </ListItemTheme>
             ))
           }
         </View>
@@ -185,7 +184,6 @@ const styles = StyleSheet.create({
     width: '80%',
   },
   titleList: {
-    fontFamily: 'Kanit-Light',
     fontSize: 14,
   },
   containButtonLogOut: {

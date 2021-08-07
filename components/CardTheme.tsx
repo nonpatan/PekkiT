@@ -18,6 +18,5 @@ export const CardTitle = (props: any) => {
 }
 
 export const CardDivider = (props:any)=>{
-    const color = useColorScheme();
-    return <Card.Divider/>
+    return <Card.Divider {...props} />
 }

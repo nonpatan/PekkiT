@@ -1,13 +1,13 @@
 import React from 'react';
 import {
-    View, StyleSheet, ActivityIndicator, Keyboard, KeyboardAvoidingView,
+    View, StyleSheet, ActivityIndicator, Keyboard,
     TouchableOpacity, TouchableWithoutFeedback, Platform, Alert,
 } from 'react-native';
 import { Text } from '../../components/Themed';
-import { ListItemContainer } from '../../components/ListItemTheme';
+import { ListItemTheme, ListItemContent, ListItemSubtitle, ListItemChevron, ListItemTitle } from '../../components/ListItemTheme';
 import { Picker } from '@react-native-picker/picker';
 import Constants from 'expo-constants';
-import { ListItem, Overlay, Input, Button } from 'react-native-elements';
+import { Overlay, Input } from 'react-native-elements';
 import { ButtonTheme } from '../../components/ButtonTheme';
 import Address from '../../components/Address';
 import * as AddressDB from '../../assets/raw_database.json';
@@ -292,18 +292,18 @@ class UserProfileScreen extends React.Component<Props>{
                                     <ActivityIndicator size='large' animating={this.props.userProfileLoading} />
                                 ) : (
                                     menuList.map((item, i) => (
-                                        <ListItemContainer
+                                        <ListItemTheme
                                             key={i}
                                             bottomDivider
                                             Component={TouchableOpacity}
                                             onPress={this.goToScreen.bind(this, item.toScreen)}
                                         >
-                                            <ListItem.Content>
-                                                <ListItem.Title ><Text style={styles.titleList}>{item.title}</Text></ListItem.Title>
-                                                <ListItem.Subtitle><Text style={styles.titleList}>{this.findContent(item.title)}</Text></ListItem.Subtitle>
-                                            </ListItem.Content>
-                                            <ListItem.Chevron />
-                                        </ListItemContainer>
+                                            <ListItemContent>
+                                                <ListItemTitle style={styles.titleList}>{item.title}</ListItemTitle>
+                                                <ListItemSubtitle><Text style={styles.subTitle}>{this.findContent(item.title)}</Text></ListItemSubtitle>
+                                            </ListItemContent>
+                                            <ListItemChevron />
+                                        </ListItemTheme>
                                     ))
                                 )
                         }
@@ -644,6 +644,9 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-start',
     },
     titleList: {
+        fontSize: 14,
+    },
+    subTitle: {
         fontFamily: 'Kanit-Light',
         fontSize: 14,
     },

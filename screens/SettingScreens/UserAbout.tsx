@@ -13,7 +13,6 @@ interface Props {
     user_about_err: any,
     user_about_loading: any,
     user_about_success: any,
-    contact: any,
 }
 
 class UserAbout extends React.Component<Props>{
@@ -34,14 +33,14 @@ class UserAbout extends React.Component<Props>{
                             this.props.user_about_loading ? (
                                 <ActivityIndicator size='large' animating={this.props.user_about_loading} />
                             ) : (
-                                this.props.user_about_success?(
+                                this.props.user_about_success ? (
                                     <View>
                                         <Text style={styles.textStyle}>{this.props.user_aboutObj.pekki}</Text>
                                         <Text style={styles.textStyle}>{`บริการ : ${this.props.user_aboutObj.service}`}</Text>
                                         <Text style={styles.textStyle}>{`อีเมล : ${this.props.user_aboutObj.contact.email}`}</Text>
                                         <Text style={styles.textStyle}>{`ไลน์ไอดี : ${this.props.user_aboutObj.contact.line}`}</Text>
                                     </View>
-                                ):(
+                                ) : (
                                     <Text>{this.props.user_about_err}</Text>
                                 )
                             )

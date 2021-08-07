@@ -130,30 +130,6 @@ class FireBaseConnect {
         }
     }
 
-    //โหลดข้อมูลจากตารางข้อมูลช่าง
-    loadTechnicianProfile = async () => {
-        const user = firebase.auth().currentUser;
-        if (user !== null) {
-            try {
-                //ทำการโหลดข้อมูลช่าง
-                const database = firebase.database().ref(`technician/${user.uid}`);
-                let dataSnapshot = await database.once('value');
-                if (dataSnapshot.exists()) {
-                    return dataSnapshot.val();
-                }
-                else {
-                    return 'ไม่มีข้อมูล';
-                }
-            }
-            catch (err) {
-                throw err;
-            }
-        }
-        else {
-            throw new Error("ไม่มี user");
-        }
-    }
-
     //บันทึกข้อมูลส่วนตัวผู้ใช้
     saveUserProfile = async (namePrefix, name, surName, tel, address) => {
         const user = firebase.auth().currentUser;
@@ -304,34 +280,6 @@ class FireBaseConnect {
         }
     }
 
-    //แสดงรายการแจ้งบริการสำหรับช่าง
-    jobTechnicianShowList = async (tableService) => {
-        let returnData = '';
-        try {
-            const user = firebase.auth().currentUser;
-            //ระบุตาราง
-            const rootRef = firebase.database().ref();
-            const serviceRef = rootRef.child(tableService);
-            const query = serviceRef.orderByChild('technicianID').equalTo(user.uid);
-            query.on('value', snapshot => {
-                console.log('**********FirebaseConnect***************');
-                console.log(snapshot.val());
-
-                if (snapshot.exists()) {
-                    returnData = snapshot.val();
-                }
-                else {
-                    returnData = 'ไม่มีข้อมูล';
-                }
-            })
-        }
-        catch (err) {
-            throw err;
-        }
-
-        return returnData;
-    }
-
     //tool ช่วยหา Object ที่มีสถานะต่างๆ เพราะทำใน TypeScript มันเรื่องมากแรง
     fineStatusObject = async (data, typeJobs) => {
 
@@ -347,7 +295,7 @@ class FireBaseConnect {
         }
         else if (typeJobs == 2) {
             entries.forEach(e => {
-                if (e[1].serviceStatus == 'ยกเลิก' || e[1].serviceStatus == 'เสร็จสิ้น') {
+                if (e[1].serviceStatus == 'ยกเลิก' || e[1].serviceStatus == 'เสร็จสิ้น' || e[1].serviceStatus == 'ไม่สามารถรับงานได้') {
                     jobArr.push(e);
                 }
             });
@@ -361,7 +309,7 @@ class FireBaseConnect {
         }
         else if (typeJobs == 3) {
             entries.forEach(e => {
-                if (e[1].repairStatus == 'ยกเลิก' || e[1].repairStatus == 'เสร็จสิ้น') {
+                if (e[1].repairStatus == 'ยกเลิก' || e[1].repairStatus == 'เสร็จสิ้น' || e[1].repairStatus == 'ไม่สามารถรับงานได้') {
                     jobArr.push(e);
                 }
             });
@@ -392,29 +340,14 @@ class FireBaseConnect {
         return returnData;
     }
 
-    //ทำการโหลดข้อมูลงาน ตาม ID ที่กำหนด
-    getJobByID = async (jobID, tableName) => {
-        let returnData = '';
-        try {
-            const rootRef = firebase.database().ref();
-            const jobRef = rootRef.child(`${tableName}/${jobID}`);
-            jobRef.on('value', snapshot => {
-                if (snapshot.exists()) {
-                    returnData = snapshot.val();
-                }
-                else {
-                    returnData = 'ไม่มีข้อมูล';
-                }
-            });
-        }
-        catch (err) {
-            throw err;
-        }
-
-        return returnData;
-    }
-
-    //กำหนดสถานะของงาน
+    /**
+     * ไว้กำหนด สถาณะการจองงาน
+     * @param {*} jobID รหัสงาน
+     * @param {*} tableName ชื่อตาราง
+     * @param {*} statusKeyName Key ที่ต้องการกำหนดสถานะ
+     * @param {*} value ค่าที่ต้องการกำหนด
+     * @returns เสร็จสิ้น หรือ error message
+     */
     setStatusJob = async (jobID, tableName, statusKeyName, value) => {
         try {
             const rootRef = firebase.database().ref();
@@ -425,28 +358,6 @@ class FireBaseConnect {
         catch (err) {
             throw err;
         }
-    }
-
-    //get About
-    getAbout = async () => {
-        let returnData = '';
-        try {
-            const rootRef = firebase.database().ref();
-            const aboutRef = rootRef.child(`about`);
-            aboutRef.on('value', snapshot => {
-                if (snapshot.exists()) {
-                    returnData = snapshot.val();
-                }
-                else {
-                    returnData = 'ไม่มีข้อมูล';
-                }
-            })
-        }
-        catch (err) {
-            throw err;
-        }
-        
-        return returnData;
     }
 }
 

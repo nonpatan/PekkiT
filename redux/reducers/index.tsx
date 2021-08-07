@@ -6,6 +6,7 @@ import UserSettingPasswordChange from './UserSettingPasswordChangReducer';
 import UserProfile from './UserProfileReducer';
 import JobReducer from './JobsReducer';
 import UserAbout from './UserAboutReducer';
+import jobDetailReducer from './jobDetailReducer';
 
 
 //รวม reducers หลายตัว 
@@ -15,6 +16,7 @@ export default combineReducers({
   userSetting: UserSettingReducer,
   userSettingPasswordChange: UserSettingPasswordChange,
   userProfile: UserProfile,
-  jobReducer : JobReducer,
-  UserAbout : UserAbout,
+  job: JobReducer,
+  jobDetail: jobDetailReducer,
+  UserAbout: UserAbout,
 });

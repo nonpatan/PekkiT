@@ -2,13 +2,12 @@ import React from 'react';
 import {
     View, TouchableOpacity, TouchableHighlight, Alert, StyleSheet
 } from 'react-native';
-import { ListItem, Avatar, } from 'react-native-elements';
+import { Avatar, } from 'react-native-elements';
 import firebase from 'firebase';
 import { connect } from 'react-redux';
 import { changAvatar } from '../../redux/actions/index';
 import fireBaseConnect from '../../redux/actions/FireBaseConnect';
-import { ListItemContainer } from '../../components/ListItemTheme';
-import { Text } from '../../components/Themed';
+import { ListItemTheme, ListItemContent, ListItemChevron, ListItemTitle } from '../../components/ListItemTheme';
 
 interface Props {
     navigation: any,
@@ -114,62 +113,62 @@ class UserSettingScreen extends React.Component<Props>{
                         </Avatar>
 
                     ) : (
-                            <Avatar
-                                size="large"
-                                rounded
-                                icon={{ name: 'person', color: 'green' }}
-                                overlayContainerStyle={{ backgroundColor: 'white' }}
-                                containerStyle={{ borderColor: 'green' }}
+                        <Avatar
+                            size="large"
+                            rounded
+                            icon={{ name: 'person', color: 'green' }}
+                            overlayContainerStyle={{ backgroundColor: 'white' }}
+                            containerStyle={{ borderColor: 'green' }}
 
-                                onPress={this.onChangImage.bind(this)}
-                            >
-                                <Avatar.Accessory />
-                            </Avatar>
-                        )
+                            onPress={this.onChangImage.bind(this)}
+                        >
+                            <Avatar.Accessory />
+                        </Avatar>
+                    )
                     }
 
                 </View>
                 <View>
-                    <ListItemContainer
+                    <ListItemTheme
                         key={0}
                         bottomDivider
                     >
-                        <ListItem.Content>
-                            <ListItem.Title><Text style={styles.titleList}>{`ชื่อผู้ใช้ : ${this.state.username}`}</Text></ListItem.Title>
-                        </ListItem.Content>
-                    </ListItemContainer>
+                        <ListItemContent>
+                            <ListItemTitle style={styles.titleList}>{`ชื่อผู้ใช้ : ${this.state.username}`}</ListItemTitle>
+                        </ListItemContent>
+                    </ListItemTheme>
 
-                    <ListItemContainer
+                    <ListItemTheme
                         key={1}
                         bottomDivider
                     >
-                        <ListItem.Content>
-                            <ListItem.Title><Text style={styles.titleList}>{`อีเมล : ${this.state.email}`}</Text></ListItem.Title>
-                        </ListItem.Content>
-                    </ListItemContainer>
+                        <ListItemContent>
+                            <ListItemTitle style={styles.titleList}>{`อีเมล : ${this.state.email}`}</ListItemTitle>
+                        </ListItemContent>
+                    </ListItemTheme>
 
-                    <ListItemContainer
+                    <ListItemTheme
                         key={2}
                         bottomDivider
                         Component={this.state.emailVerify ? TouchableHighlight : TouchableOpacity}
                         onPress={this.state.emailVerify ? undefined : this.onSendEmailVerify.bind(this)}
                     >
-                        <ListItem.Content>
-                            <ListItem.Title ><Text style={this.state.emailVerify ? styles.titleList : styles.titleListError}>{`ยืนยันอีเมล : ${this.state.emailVerify ? 'ยืนยันแล้ว' : 'ไม่ได้ยืนยัน คลิกเพื่อยืนยัน'}`}</Text></ListItem.Title>
-                        </ListItem.Content>
-                    </ListItemContainer>
+                        <ListItemContent>
+                            <ListItemTitle style={styles.titleList}>{`ยืนยันอีเมล : ${this.state.emailVerify ? 'ยืนยันแล้ว' : 'ไม่ได้ยืนยัน คลิกเพื่อยืนยัน'}`}</ListItemTitle>
+                        </ListItemContent>
+                    </ListItemTheme>
 
-                    <ListItemContainer
+                    <ListItemTheme
                         key={3}
                         bottomDivider
                         Component={TouchableOpacity}
                         onPress={this.goToPasswordChanged.bind(this)}
                     >
-                        <ListItem.Content >
-                            <ListItem.Title ><Text style={styles.titleList}>{`เปลี่ยนรหัสผ่าน`}</Text></ListItem.Title>
-                        </ListItem.Content>
-                        <ListItem.Chevron />
-                    </ListItemContainer>
+                        <ListItemContent >
+                            <ListItemTitle style={styles.titleList}>{`เปลี่ยนรหัสผ่าน`}</ListItemTitle>
+                        </ListItemContent>
+                        <ListItemChevron />
+                    </ListItemTheme>
                 </View>
             </View>
         );
@@ -208,7 +207,6 @@ const styles = StyleSheet.create({
         width: '80%',
     },
     titleList: {
-        fontFamily: 'Kanit-Light',
         fontSize: 14,
     },
     containButtonLogOut: {
