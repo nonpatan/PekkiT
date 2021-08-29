@@ -18,5 +18,5 @@ export default combineReducers({
   userProfile: UserProfile,
   job: JobReducer,
   jobDetail: jobDetailReducer,
-  UserAbout: UserAbout,
+  userAbout: UserAbout,
 });

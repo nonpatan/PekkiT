@@ -24,6 +24,7 @@ import {
     USER_SETTING_ABOUT_INIT,
     USER_SETTING_ABOUT_SUCCESS,
     USER_SETTING_ABOUT_FAIL,
+    USER_SETTING_PASSWORD_CLEAR_DATA
 } from '../types';
 
 import * as ImagePicker from 'expo-image-picker';
@@ -115,6 +116,17 @@ export const newPasswordChangeToAccount = (newPassword: String, confirmPassword:
 
     }
 }
+
+/**
+ * ทำการรีเซ็ทข้อมูลก่อนออกจากหน้าปัจจุบัน
+ * @returns 
+ */
+ export const clearDataChangePassword = () => {
+    return {
+        type: USER_SETTING_PASSWORD_CLEAR_DATA,
+    }
+}
+
 /**
  * แสดงข้อมูลผู้ใช้ จาก Technician
  */

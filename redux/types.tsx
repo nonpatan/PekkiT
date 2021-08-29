@@ -24,6 +24,7 @@ export const USER_SETTING_CONFIRM_PASSWORD_CHANGED = 'user_setting_confirm_passw
 export const USER_SETTING_PASSWORD_CHANGED_INIT = 'user_setting_password_changed_init';
 export const USER_SETTING_PASSWORD_CHANGED_FAIL = 'user_setting_password_changed_fail';
 export const USER_SETTING_PASSWORD_CHANGED_COMPLETE = 'user_setting_password_changed_complete';
+export const USER_SETTING_PASSWORD_CLEAR_DATA = 'user_setting_password_clear_data';
 export const USER_SETTING_USERPROFILE_INIT = 'user_setting_userprofile_init';
 export const USER_SETTING_USERPROFILE_FAIL = 'user_setting_userprofile_fail';
 export const USER_SETTING_LOAD_USERPROFILE_SUCCESS = 'user_setting_load_userprofile_success';

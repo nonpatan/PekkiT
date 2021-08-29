@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, View, ActivityIndicator } from 'react-native';
 import { CardTheme, CardTitle, CardDivider } from '../../components/CardTheme';
 import { Text } from '../../components/Themed';
-import { getAbout } from '../../redux/actions/UserSettingAction';
+import { getAbout } from '../../redux/actions/index';
 import { connect } from 'react-redux';
 
 
@@ -55,7 +55,7 @@ class UserAbout extends React.Component<Props>{
 //รับ state ปัจจุบัน แล้ว return เป็น object 
 //จากเดิม state เป็น ({auth}) เพราะใช้หลักการ Destructuring
 const mapStateToProps = (state: any) => {
-    const { user_aboutObj, user_about_err, user_about_loading, user_about_success } = state.UserAbout;//state ที่ต้องการใช้เอามาบางส่วนได้
+    const { user_aboutObj, user_about_err, user_about_loading, user_about_success } = state.userAbout;//state ที่ต้องการใช้เอามาบางส่วนได้
     //ถ้า return {email:email} จะเขียนได้เป็น {email} ได้สำหรับ object
     return { user_aboutObj, user_about_err, user_about_loading, user_about_success };
 };

@@ -6,13 +6,13 @@ import {
 import { Text } from '../../components/Themed';
 import { ListItemTheme, ListItemContent, ListItemSubtitle, ListItemChevron, ListItemTitle } from '../../components/ListItemTheme';
 import { Picker } from '@react-native-picker/picker';
-import Constants from 'expo-constants';
 import { Overlay, Input } from 'react-native-elements';
 import { ButtonTheme } from '../../components/ButtonTheme';
 import Address from '../../components/Address';
 import * as AddressDB from '../../assets/raw_database.json';
 import { connect } from 'react-redux';
 import _ from 'lodash';
+import * as Location from 'expo-location';
 import {
     showUserProfile, namePrefixChanged, editUserProfile, nameChanged, surNameChanged, telChanged, streetChanged, provinceChanged, editAddressUserProfile,
     zipcodeChanged, amphoeChanged, saveUserProfile,
@@ -87,17 +87,27 @@ class UserProfileScreen extends React.Component<Props>{
                 break;
             case 'address':
                 //ทำการเรียกหน้าที่อยู่ โดยถ้าเป็นการเพิ่มข้อมูลครั้งแรกให้ระบุ GPS ไปเลย
-                if (!this.props.userProfileExists) {//ถ้าไม่มีข้อมูลใน DB
-                    if (this.props.address.province === '' && this.props.address.amphoe === '' && this.props.address.zipcode === '') {//ถ้ายังไม่มีข้อมูลเดิมเลย
-                        //เรียกใช้ GPS
-                        if (Platform.OS === 'android' && !Constants.isDevice) {//Constants.isDevice true if the app is running on a device, false if running in a simulator or emulator.
-                            Alert.alert('มีข้อผิดพลาด', 'Oops, this will not work on Sketch in an Android emulator. Try it on your device!');
-                        } else {
-                            //เนื่องจากการระบุตำแหน่งต้องใช้เวลา ดังนั้นจะต้องให้สัญลักษณ์โหลดขึ้นมาก่อน
+                if (!this.props.userProfileExists) {
+                    //ถ้าไม่มีข้อมูลใน DB
+                    let { status } = await Location.requestForegroundPermissionsAsync();
+                    if (status == 'granted') {
+                        try {
+                            //ถ้าอนุญาติ คือ จะต้องมีการขอระบบให้ใช้ Location ด้วย
                             this.setState({ isGPSLoadingVisible: true });
-                            //await this._getLocationAsync();
+
+                            let location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+                            const place = await Location.reverseGeocodeAsync({
+                                latitude: location.coords.latitude,
+                                longitude: location.coords.longitude
+                            });
+
+                            await this.showAddressFromLocation(place);
+
                             //เมื่อระบุเรียบร้อย ก็ให้ปิดหน้าโหลดลง
                             this.setState({ isGPSLoadingVisible: false });
+                        }
+                        catch (err) {
+                            Alert.alert('มีข้อผิดพลาด', err.message);
                         }
                     }
                 }
@@ -110,6 +120,48 @@ class UserProfileScreen extends React.Component<Props>{
         //ทำการเรียก แสดงข้อมูลผู้ใช้
         this.props.showUserProfile();
     }
+
+    showAddressFromLocation = async (place: any) => {
+        const city = place[0].city; //อำเภอ
+        const districe = place[0].district; //ตำบล
+        const name = place[0].name; //ที่อยู่
+        const postalCode = place[0].postalCode; //รหัสไปรษณีย์
+        const region = place[0].region; //จังหวัด
+
+        if(name != null && districe !== null){
+            //ทำการเปลี่ยนที่อยู่
+            this.props.streetChanged(`${name} ต.${districe}`);
+        }
+        else{
+            Alert.alert('ข้อผิดพลาด','ไม่มีที่อยู่จาก GPS');
+        }
+
+        if(region !== null){
+            //ทำการเปลี่ยนจังหวัด
+            this.props.provinceChanged(region);
+        }
+        else{
+            Alert.alert('ข้อผิดพลาด','ไม่มีจังหวัดจาก GPS');
+        }
+
+        if(city !== null){
+            //ทำการแสดงอำเภอ
+            this.props.amphoeChanged(city);
+        }
+        else{
+            Alert.alert('ข้อผิดพลาด','ไม่มีอำเภอจาก GPS');
+        }
+
+        if(postalCode != null){
+            //ทำการแสดงรหัสไปรษณีย์
+            this.props.zipcodeChanged(postalCode);
+        }
+        else{
+            Alert.alert('ข้อผิดพลาด','ไม่มีรหัสไปรษณีย์จาก GPS');
+        }
+
+    }
+
     /**
      * เอาไว้หาข้อมูลใน OBJ ของการ Query ข้อมูลผู้ใช้จาก users 
      * @param find ระบุ key
@@ -161,7 +213,7 @@ class UserProfileScreen extends React.Component<Props>{
     namePrefixListItem = () => {
         let listItem = ['นาย', 'นาง', 'นางสาว'];
         return (listItem.map((x, i) => {
-            return (<Picker.Item label={x} key={i + 1} value={x} />)
+            return (<Picker.Item style={styles.pickerItemStyle}  label={x} key={i + 1} value={x} />)
         }));
     }
 
@@ -327,7 +379,7 @@ class UserProfileScreen extends React.Component<Props>{
                                         selectedValue={this.props.namePrefix}
                                         onValueChange={prefix => this.props.namePrefixChanged(prefix)}
                                     >
-                                        <Picker.Item label='กรุณาเลือกคำนำหน้าชือ' value='' />
+                                        <Picker.Item style={styles.pickerItemStyle}  label='กรุณาเลือกคำนำหน้าชือ' value='' />
                                         {this.namePrefixListItem()}
                                     </Picker>
 
@@ -568,9 +620,9 @@ class UserProfileScreen extends React.Component<Props>{
                     {/**หน้ารอ GPS */}
                     <Overlay
                         isVisible={this.state.isGPSLoadingVisible}
-                        overlayStyle={{ width: 'auto%', height: 'auto', borderRadius: 20 }}
+                        overlayStyle={{ width: 'auto', height: 'auto', borderRadius: 20 ,backgroundColor: 'rgba(255, 255, 255, 0.5)',}}
                     >
-                        <ActivityIndicator size='large' animating={this.state.isGPSLoadingVisible} />
+                        <ActivityIndicator size='large' color='green' animating={this.state.isGPSLoadingVisible} />
                     </Overlay>
                     {/***************************************************************************************************************************************** */}
                     {/**เลือกจังหวัด */}

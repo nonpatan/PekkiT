@@ -14,6 +14,7 @@ export default {
     tabIconSelected: tintColorLight,
     iconColor: 'green',
     textError: 'red',
+    textSuccess:'green',//เอาไว้แสดงว่าทำเสร็จแระ
   },
   dark: {
     text: '#fff',
@@ -27,5 +28,6 @@ export default {
     tabIconSelected: tintColorDark,
     iconColor: 'white',
     textError: 'red',
+    textSuccess:'green',//เอาไว้แสดงว่าทำเสร็จแระ
   },
 };
