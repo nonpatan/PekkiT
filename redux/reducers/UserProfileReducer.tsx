@@ -29,6 +29,7 @@ const INITIAL_STATE = {
         amphoe: '',
         zipcode: '',
     },/***ต้องแก้ไข */
+    expoPushToken:'',
     userProfileExists: false,//ตรวจสอบว่ามีข้อมูลหรือไม่
     userProfileLoading: false,//สำหรับแสดง Loading  สำหรับโหลดข้อมูลทั้งหมด 
     userProfileAddLoading: false,//สำหรับแสดง Loading เมื่อมีการเพิ่มที่ปุ่ม บันทึก
@@ -41,7 +42,7 @@ const INITIAL_STATE = {
 export default (state = INITIAL_STATE, action: any) => {
     switch (action.type) {
         case USER_SETTING_LOAD_USERPROFILE_SUCCESS: //โหลด user profile สำเร็จ กำหนดว่า มีข้อมูล และ ให้ เครื่องหมายโหลดหยูดลง
-            return { ...state, ...action.payload, userProfileExists: true, userProfileLoading: false };//
+            return { ...state, ...action.payload, userProfileExists: true, userProfileLoading: false };
 
         case USER_SETTING_USERPROFILE_PREFIX_CHANGED:
             return { ...state, namePrefix: action.payload }

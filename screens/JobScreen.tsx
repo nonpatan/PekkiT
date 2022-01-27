@@ -16,14 +16,15 @@ interface Props {
   jobListErrMessage: any,
   jobServiceListObjArray: any,
   isJobListExist: any,
+  selectedIndex: any,
 }
 
 class JobScreen extends React.Component<Props>{
 
   _isMounted = false;
   state = {
-    selectedIndex: 0,//กำหนด index ของปุ่ม button group
-    button:['บริการ', 'ซ่อม', 'ประวัติ บริการ', 'ประวัติ ซ่อม'],
+    //selectedIndex: 0,//กำหนด index ของปุ่ม button group
+    button: ['บริการ', 'ซ่อม', 'ประวัติ บริการ', 'ประวัติ ซ่อม'],
   }
 
   updateIndex(selectedIndex: number) {
@@ -36,30 +37,30 @@ class JobScreen extends React.Component<Props>{
       if (selectedIndex == 0) {
         //บริการ
         this.props.jobsShowList(selectedIndex);
-        this.setState({ selectedIndex });
+        //this.setState({ selectedIndex });
       }
       else if (selectedIndex == 2) {
         //ประวัติบริการ
         this.props.jobsShowList(selectedIndex);
-        this.setState({ selectedIndex });
+        //this.setState({ selectedIndex });
       }
       else if (selectedIndex == 1) {
         //ซ่อม
         this.props.jobsShowList(selectedIndex);
-        this.setState({ selectedIndex });
+        //this.setState({ selectedIndex });
       }
       else if (selectedIndex == 3) {
         //ประวัติซ่อม
         this.props.jobsShowList(selectedIndex);
-        this.setState({ selectedIndex });
+        //this.setState({ selectedIndex });
       }
 
     }
     else {
 
       //ถ้าไม่มีการเลือกก็ไปบริการเลย
-      this.props.jobsShowList(0);
-      this.setState({ selectedIndex: 0 });
+      this.props.jobsShowList(this.props.selectedIndex);
+      //this.setState({ selectedIndex: 0 });
 
     }
 
@@ -68,7 +69,7 @@ class JobScreen extends React.Component<Props>{
   componentDidMount() {
     this._isMounted = true;
     if (this._isMounted) {
-      this.props.jobsShowList(this.state.selectedIndex);
+      this.props.jobsShowList(this.props.selectedIndex);
     }
 
   }
@@ -79,11 +80,30 @@ class JobScreen extends React.Component<Props>{
 
   goToJobDetailScreen = (jobID: String) => {
     //ไปหน้าแสดงรายละเอียดรายการ
-    this.props.navigation.navigate('JobDetail', { jobID, selectedIndex: this.state.selectedIndex });
+    this.props.navigation.navigate('JobDetail', { jobID, selectedIndex: this.props.selectedIndex });
   }
 
-  gotoNext = () => {
-    this.props.navigation.navigate('Test');
+  /**
+   * ไว้กำหนด Text แสดงสถานะในสีต่างๆ
+   * @param status สถานะ
+   * @returns Text 
+   */
+  returnStatusColor = (status: String) => {
+    if (status == 'รอยืนยัน') {
+      return (
+        <Text style={styles.titleStatusRed}>{`สถานะ : ${status}`}</Text>
+      )
+    }
+    else if (status == 'เสร็จสิ้น') {
+      return (
+        <Text style={styles.titleStatusGreen}>{`สถานะ : ${status}`}</Text>
+      )
+    }
+    else {
+      return (
+        <Text style={styles.titleList}>{`สถานะ : ${status}`}</Text>
+      )
+    }
   }
 
   render() {
@@ -93,7 +113,7 @@ class JobScreen extends React.Component<Props>{
           {/**ปุ่มต่างๆ */}
           <ButtonGroupTheme
             onPress={this.updateIndex.bind(this)}
-            selectedIndex={this.state.selectedIndex}
+            selectedIndex={this.props.selectedIndex}
             buttons={this.state.button}
           />
           {
@@ -105,7 +125,7 @@ class JobScreen extends React.Component<Props>{
               (
                 this.props.isJobListExist ? (
                   //ถ้ามีรายการ
-                  ((this.state.selectedIndex == 0) || (this.state.selectedIndex == 2)) ? (
+                  ((this.props.selectedIndex == 0) || (this.props.selectedIndex == 2)) ? (
                     //สำหรับรายการบริการ
                     this.props.jobServiceListObjArray.reverse().map((item: any, i: number) => (
                       <ListItemTheme
@@ -117,9 +137,9 @@ class JobScreen extends React.Component<Props>{
                         <ListItemContent>
                           <ListItemTitle style={styles.titleList}>{(new Date(item[1].date)).toLocaleString()}</ListItemTitle>
                           <ListItemSubtitle>
-                            <View style={styles.viewListItem}>
+                            <View>
                               <Text style={styles.titleList}>{item[1].serviceSelected.name}</Text>
-                              <Text style={styles.titleList}>{item[1].serviceStatus}</Text>
+                              {this.returnStatusColor(item[1].serviceStatus)}
                             </View>
                           </ListItemSubtitle>
                         </ListItemContent>
@@ -139,9 +159,9 @@ class JobScreen extends React.Component<Props>{
                           <ListItemContent>
                             <ListItemTitle style={styles.titleList}>{(new Date(item[1].date)).toLocaleString()}</ListItemTitle>
                             <ListItemSubtitle>
-                              <View style={styles.viewListItem}>
+                              <View>
                                 <Text style={styles.titleList}>{item[1].repairSelected.name}</Text>
-                                <Text style={styles.titleList}>{item[1].repairStatus}</Text>
+                                {this.returnStatusColor(item[1].repairStatus)}
                               </View>
                             </ListItemSubtitle>
                           </ListItemContent>
@@ -167,11 +187,11 @@ class JobScreen extends React.Component<Props>{
 //รับ state ปัจจุบัน แล้ว return เป็น object 
 //จากเดิม state เป็น ({auth}) เพราะใช้หลักการ Destructuring
 const mapStateToProps = (state: any) => {
-  const { jobListLoading, jobListErrMessage, jobServiceListObjArray, isJobListExist } = state.job;//state ที่ต้องการใช้เอามาบางส่วนได้
+  const { jobListLoading, jobListErrMessage, jobServiceListObjArray, isJobListExist, selectedIndex } = state.job;//state ที่ต้องการใช้เอามาบางส่วนได้
 
   //ถ้า return {email:email} จะเขียนได้เป็น {email} ได้สำหรับ object
   return {
-    jobListLoading, jobListErrMessage, jobServiceListObjArray, isJobListExist
+    jobListLoading, jobListErrMessage, jobServiceListObjArray, isJobListExist, selectedIndex
   };
 };
 //connect ให้ทั้ง state และ action เป็น props ของ LoginForm 
@@ -188,17 +208,22 @@ const styles = StyleSheet.create({
     width: '100%'
   },
   titleList: {
-    fontSize: 14,
-  },
-  textStyle:{
     fontFamily: 'Kanit-Light',
     fontSize: 14,
   },
-  viewListItem: {
-    flex: 1,
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    flexDirection: 'column',
+  titleStatusRed: {
+    fontFamily: 'Kanit-Light',
+    fontSize: 14,
+    color: 'red',
+  },
+  titleStatusGreen: {
+    fontFamily: 'Kanit-Light',
+    fontSize: 14,
+    color: 'green',
+  },
+  textStyle: {
+    fontFamily: 'Kanit-Light',
+    fontSize: 14,
   },
   viewTechnicianOut: {
     flex: 1,

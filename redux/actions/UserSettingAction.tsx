@@ -73,7 +73,7 @@ export const changAvatar = () => {
                     changAvatarSuccess(dispatch, uploadUrl);
                 }
             }
-        } catch (err) {
+        } catch (err: any) {
             Alert.alert('Upload image error:', err.message);
         }
     }
@@ -105,7 +105,7 @@ export const newPasswordChangeToAccount = (newPassword: String, confirmPassword:
                 await fireBaseConnect.passwordChanged(newPassword);
                 changNewPasswordSuccess(dispatch);
             }
-            catch (error) {
+            catch (error: any) {
                 changeNewPasswordFail(dispatch, error.message);
             }
 
@@ -121,7 +121,7 @@ export const newPasswordChangeToAccount = (newPassword: String, confirmPassword:
  * ทำการรีเซ็ทข้อมูลก่อนออกจากหน้าปัจจุบัน
  * @returns 
  */
- export const clearDataChangePassword = () => {
+export const clearDataChangePassword = () => {
     return {
         type: USER_SETTING_PASSWORD_CLEAR_DATA,
     }
@@ -135,28 +135,28 @@ export const showUserProfile = () => {
         try {
             //show loading
             initLoadingProfile(dispatch);
-            
+
             const user = firebase.auth().currentUser;
             if (user !== null) {
-                    //ทำการโหลดข้อมูลช่าง
-                    const database = firebase.database().ref(`technician/${user.uid}`);
-                    database.on('value', snapshot => {
-                        
-                        if (snapshot.exists()) {
-                            //ถ้ามีข้อมูล
-                            loadUserProfileSuccess(dispatch, snapshot.val());
-                        }
-                        else {
-                            //ถ้าไม่มีข้อมูล
-                            loadUserProfileFail(dispatch, 'ไม่มีข้อมูล');
-                        }
-                    }); 
+                //ทำการโหลดข้อมูลช่าง
+                const database = firebase.database().ref(`technician/${user.uid}`);
+                database.on('value', snapshot => {
+
+                    if (snapshot.exists()) {
+                        //ถ้ามีข้อมูล
+                        loadUserProfileSuccess(dispatch, snapshot.val());
+                    }
+                    else {
+                        //ถ้าไม่มีข้อมูล
+                        loadUserProfileFail(dispatch, 'ไม่มีข้อมูล');
+                    }
+                });
             }
-            else{
+            else {
                 loadUserProfileFail(dispatch, 'ไม่มี currentUser');
             }
         }
-        catch (err) {
+        catch (err: any) {
             loadUserProfileFail(dispatch, err.message);
         }
     }
@@ -177,7 +177,7 @@ export const editUserProfile = (key: any, value: String) => {
             if (key !== '' && value !== '') {
                 //กำหนดค่าเริ่มต้นก่อน
                 inintEditProfile(dispatch);
-                
+
                 let result = await fireBaseConnect.editTechnicianProfile(key, value);
 
                 if (result === 'complete') {
@@ -188,7 +188,7 @@ export const editUserProfile = (key: any, value: String) => {
                 editUserProfileFail(dispatch, 'กรุณาป้อนข้อมูลให้ครบถ้วน');
             }
         }
-        catch (err) {
+        catch (err: any) {
             editUserProfileFail(dispatch, err.message);
         }
     }
@@ -258,7 +258,7 @@ export const editAddressUserProfile = (street: String, province: String, amphoe:
                 Alert.alert('มีข้อผิดพลาด', 'กรุณาป้อนข้อมูลให้ครบถ้วน');
             }
         }
-        catch (err) {
+        catch (err: any) {
             Alert.alert('ข้อผิดพลาด', err.message);
         }
     }
@@ -277,15 +277,24 @@ export const amphoeChanged = (amphoe: String) => {
         payload: amphoe,
     }
 }
-
-export const saveUserProfile = (namePrefix: String, name: String, surName: String, tel: String, address: any) => {/**ต้องแก้ไข */
+/**
+ * บันทึกข้อมูลช่าง
+ * @param namePrefix 
+ * @param name 
+ * @param surName 
+ * @param tel 
+ * @param address 
+ * @param expoPushToken สามารถว่างได้นะ 
+ * @returns 
+ */
+export const saveUserProfile = (namePrefix: String, name: String, surName: String, tel: String, address: any, expoPushToken: any) => {/**ต้องแก้ไข */
     return async (dispatch: any) => {
         try {
             //ตรวจสอบข้อมูลเบื้องต้น
             if (namePrefix !== '' && name !== '' && surName !== '' && tel !== '' && address.street !== '' && address.province !== '' && address.amphoe !== '' && address.zipcode !== '') {
                 initSaveProfile(dispatch);//กำหนดค่าเริ่มต้นก่อน
 
-                let result = await fireBaseConnect.saveTechnicianProfile(namePrefix, name, surName, tel, address);
+                let result = await fireBaseConnect.saveTechnicianProfile(namePrefix, name, surName, tel, address, expoPushToken);
                 if (result === 'complete') {
                     Alert.alert('การบันทึกข้อมูล', 'บันทึกข้อมูลของท่านเรียบร้อย');
                     saveUserProfileSuccess(dispatch);
@@ -295,7 +304,7 @@ export const saveUserProfile = (namePrefix: String, name: String, surName: Strin
                 Alert.alert('มีข้อผิดพลาด', 'กรุณาป้อนข้อมูลให้ครบถ้วน');
             }
         }
-        catch (err) {
+        catch (err: any) {
             Alert.alert('มีข้อผิดพลาด', err.message);
         }
     }
@@ -322,7 +331,7 @@ export const getAbout = () => {
                 }
             })
         }
-        catch (err) {
+        catch (err: any) {
             loadAboutFail(dispatch, err.message);
         }
     }

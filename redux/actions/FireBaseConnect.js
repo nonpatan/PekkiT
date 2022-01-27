@@ -157,7 +157,17 @@ class FireBaseConnect {
     }
 
     //บันทึกข้อมูลส่วนตัวช่าง
-    saveTechnicianProfile = async (namePrefix, name, surName, tel, address) => {
+    /**
+     * 
+     * @param {*} namePrefix คำนำหน้าชื่อ
+     * @param {*} name ชื่อ
+     * @param {*} surName นามสกุล
+     * @param {*} tel เบอร์โทร
+     * @param {*} address ที่อยู่
+     * @param {*} expoPushToken push expo token
+     * @returns 
+     */
+    saveTechnicianProfile = async (namePrefix, name, surName, tel, address, expoPushToken) => {
         const user = firebase.auth().currentUser;
         if (user !== null) {
             try {
@@ -175,7 +185,8 @@ class FireBaseConnect {
                         4: 0,
                         5: 0,
                         totalScore: 0,
-                    }
+                    },
+                    expoPushToken,
                 });
 
                 //เมื่อ save เรียบร้อย
@@ -354,6 +365,38 @@ class FireBaseConnect {
             const jobRef = rootRef.child(`${tableName}/${jobID}`);
             await jobRef.update({ [statusKeyName]: value });
             return 'เสร็จสิ้น';
+        }
+        catch (err) {
+            throw err;
+        }
+    }
+
+    /**
+     * ส่ง pushNotification
+     * @param {*} expoPushToken expo token ที่เก็บไว้ที่ฐานข้อมูลของผู้รับ
+     * @param {*} title หัวข้อ
+     * @param {*} body เนื้อหา
+     */
+    sendPushNotification = async (expoPushToken, title, body) => {
+        try {
+                //ถ้าผู้รับมี push token
+                const message = {
+                    to: expoPushToken,
+                    sound: 'default',
+                    title: title,
+                    body: body,
+                    data: { someData: 'goes here' },
+                };
+
+                await fetch('https://exp.host/--/api/v2/push/send', {
+                    method: 'POST',
+                    headers: {
+                        Accept: 'application/json',
+                        'Accept-encoding': 'gzip, deflate',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(message),
+                });
         }
         catch (err) {
             throw err;

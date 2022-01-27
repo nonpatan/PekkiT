@@ -44,9 +44,12 @@ export const USER_SETTING_USERPROFILE_ZIPCODE_CHANGED = 'user_setting_userprofil
 export const USER_SETTING_ABOUT_INIT = 'user_setting_about_init';//User About
 export const USER_SETTING_ABOUT_SUCCESS = 'user_setting_about_success';//User About
 export const USER_SETTING_ABOUT_FAIL = 'user_about_fail';//User About
+
 export const JOB_LOADING_INIT = 'job_loading_init';//Job Screen
 export const JOB_LOADING_SUCCESS = 'job_loading_success';//Job Screen
 export const JOB_LOADING_FAIL = 'job_loading_fail';//Job Screen
+export const JOB_SET_SELECTED_INDEX = 'job_set_selected_index';//Job Screen
+
 export const JOB_SELECTED_INIT = 'job_selected_init';//Job Detail
 export const JOB_SELECTED = 'job_selected';//Job Detail
 export const JOB_SELECTED_FAIL = 'job_selected_fail';//Job Detail

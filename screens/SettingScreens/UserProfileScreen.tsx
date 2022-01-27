@@ -18,6 +18,9 @@ import {
     zipcodeChanged, amphoeChanged, saveUserProfile,
 } from '../../redux/actions/index';
 
+import * as Notifications from 'expo-notifications';
+import Constants from 'expo-constants';
+
 interface Props {
     navigation: any,
     userProfileLoading: any,
@@ -29,6 +32,7 @@ interface Props {
     name: any,
     surName: any,
     tel: any,
+    expoPushToken: any,
     namePrefixChanged: any,
     userProfileEditErrMessage: any,
     editUserProfile: any,
@@ -67,8 +71,38 @@ class UserProfileScreen extends React.Component<Props>{
             amphoe: '',
             zipcode: '',
         },
+        expoPushToken: '',//เอาไว้เก็บ expo push token
 
     };
+
+    //เอาไว้ลงทะเบียน จะได้ expo push token
+    registerForPushNotificationsAsync = async () => {
+        if (Constants.isDevice) {//เป็นอุปกรณ์
+            const { status: existingStatus } = await Notifications.getPermissionsAsync();
+            let finalStatus = existingStatus;
+            if (existingStatus !== 'granted') {//ถ้าเดิมยังไม่อนุญาติ
+                const { status } = await Notifications.requestPermissionsAsync();//ทำการขออนุญาติ
+                finalStatus = status;//เก็บสถานะไว้
+            }
+            if (finalStatus !== 'granted') {//ถ้าไม่อนุญาติ
+                Alert.alert('มีข้อความเตือน', 'ระบบต้องการ push token สำหรับ push notification!');
+                return;//ออกจากฟังก์ชั่นเลย
+            }
+            const token = (await Notifications.getExpoPushTokenAsync()).data;
+            this.setState({ expoPushToken: token });//Set expo push token
+        } else {
+            Alert.alert('มีข้อความเตือน', 'Must use physical device for Push Notifications');
+        }
+
+        if (Platform.OS === 'android') {
+            Notifications.setNotificationChannelAsync('default', {
+                name: 'default',
+                importance: Notifications.AndroidImportance.MAX,
+                vibrationPattern: [0, 250, 250, 250],
+                lightColor: '#FF231F7C',
+            });
+        }
+    }
 
     goToScreen = async (screen: any) => {
         //ตัวเลือกให้ Overlay ไหนแสดงขึ้นมา
@@ -106,7 +140,7 @@ class UserProfileScreen extends React.Component<Props>{
                             //เมื่อระบุเรียบร้อย ก็ให้ปิดหน้าโหลดลง
                             this.setState({ isGPSLoadingVisible: false });
                         }
-                        catch (err) {
+                        catch (err: any) {
                             Alert.alert('มีข้อผิดพลาด', err.message);
                         }
                     }
@@ -119,6 +153,7 @@ class UserProfileScreen extends React.Component<Props>{
     componentDidMount() {
         //ทำการเรียก แสดงข้อมูลผู้ใช้
         this.props.showUserProfile();
+
     }
 
     showAddressFromLocation = async (place: any) => {
@@ -128,36 +163,36 @@ class UserProfileScreen extends React.Component<Props>{
         const postalCode = place[0].postalCode; //รหัสไปรษณีย์
         const region = place[0].region; //จังหวัด
 
-        if(name != null && districe !== null){
+        if (name != null && districe !== null) {
             //ทำการเปลี่ยนที่อยู่
             this.props.streetChanged(`${name} ต.${districe}`);
         }
-        else{
-            Alert.alert('ข้อผิดพลาด','ไม่มีที่อยู่จาก GPS');
+        else {
+            Alert.alert('ข้อผิดพลาด', 'ไม่มีที่อยู่จาก GPS');
         }
 
-        if(region !== null){
+        if (region !== null) {
             //ทำการเปลี่ยนจังหวัด
             this.props.provinceChanged(region);
         }
-        else{
-            Alert.alert('ข้อผิดพลาด','ไม่มีจังหวัดจาก GPS');
+        else {
+            Alert.alert('ข้อผิดพลาด', 'ไม่มีจังหวัดจาก GPS');
         }
 
-        if(city !== null){
+        if (city !== null) {
             //ทำการแสดงอำเภอ
             this.props.amphoeChanged(city);
         }
-        else{
-            Alert.alert('ข้อผิดพลาด','ไม่มีอำเภอจาก GPS');
+        else {
+            Alert.alert('ข้อผิดพลาด', 'ไม่มีอำเภอจาก GPS');
         }
 
-        if(postalCode != null){
+        if (postalCode != null) {
             //ทำการแสดงรหัสไปรษณีย์
             this.props.zipcodeChanged(postalCode);
         }
-        else{
-            Alert.alert('ข้อผิดพลาด','ไม่มีรหัสไปรษณีย์จาก GPS');
+        else {
+            Alert.alert('ข้อผิดพลาด', 'ไม่มีรหัสไปรษณีย์จาก GPS');
         }
 
     }
@@ -213,12 +248,12 @@ class UserProfileScreen extends React.Component<Props>{
     namePrefixListItem = () => {
         let listItem = ['นาย', 'นาง', 'นางสาว'];
         return (listItem.map((x, i) => {
-            return (<Picker.Item style={styles.pickerItemStyle}  label={x} key={i + 1} value={x} />)
+            return (<Picker.Item style={styles.pickerItemStyle} label={x} key={i + 1} value={x} />)
         }));
     }
 
     //แก้ไขหมด ยกเว้น ที่อยู่ มันซับซ้อนกว่า
-    onButtonEditPress = (key: String) => {
+    onButtonEditPress = async (key: String) => {
         switch (key) {
             case 'namePrefix':
                 this.props.editUserProfile(key, this.props.namePrefix);
@@ -232,6 +267,15 @@ class UserProfileScreen extends React.Component<Props>{
             case 'tel':
                 this.props.editUserProfile(key, this.props.tel);
                 break;
+        }
+
+        //ทำการตรวจสอบว่ามี expoPushToken หรือไม่
+        if (this.props.expoPushToken === '') {
+            //ถ้ายังไม่มี ก็ทำการขออนุญาติ และบันทึกลงในฐานข้อมูล
+            await this.registerForPushNotificationsAsync();
+            if (this.state.expoPushToken !== '') {
+                this.props.editUserProfile('expoPushToken', this.state.expoPushToken);
+            }
         }
     }
 
@@ -259,13 +303,22 @@ class UserProfileScreen extends React.Component<Props>{
         }
     }
 
-    onButtonAddressEditPress = () => {
+    onButtonAddressEditPress = async () => {
         //ตรวจสอบเบื้องต้น
         if (this.props.address.street !== '' && this.props.address.province !== '' && this.props.address.amphoe !== '' && this.props.address.zipcode) {
             this.props.editAddressUserProfile(this.props.address.street, this.props.address.province, this.props.address.amphoe, this.props.address.zipcode);
         }
         else {
             Alert.alert('ข้อผิดพลาด', 'ข้อมูลไม่ครบถ้วน');
+        }
+
+        //ทำการตรวจสอบว่ามี expoPushToken หรือไม่
+        if (this.props.expoPushToken === '') {
+            //ถ้ายังไม่มี ก็ทำการขออนุญาติ และบันทึกลงในฐานข้อมูล
+            await this.registerForPushNotificationsAsync();
+            if (this.state.expoPushToken !== '') {
+                this.props.editUserProfile('expoPushToken', this.state.expoPushToken);
+            }
         }
 
     }
@@ -325,8 +378,14 @@ class UserProfileScreen extends React.Component<Props>{
     }
 
     //ไว้สำหรับในกรณีที่เพิ่มข้อมูลผู้ใช้ใหม่เลย
-    onButtonAddPress = () => {
-        this.props.saveUserProfile(this.props.namePrefix, this.props.name, this.props.surName, this.props.tel, this.props.address);
+    onButtonAddPress = async () => {
+        await this.registerForPushNotificationsAsync();//ทำการลงทะเบียน Push Notifications
+        if (this.state.expoPushToken !== '') {
+            this.props.saveUserProfile(this.props.namePrefix, this.props.name, this.props.surName, this.props.tel, this.props.address, this.state.expoPushToken);
+        }
+        else {
+            Alert.alert('ข้อผิดพลาด', 'กรุณาอนุญาติการใช้งาน Push Notification ถ้าไม่อย่างงั้นจะบันทึกข้อมูลส่วนตัวไม่ได้');
+        }
     }
 
     render() {
@@ -379,7 +438,7 @@ class UserProfileScreen extends React.Component<Props>{
                                         selectedValue={this.props.namePrefix}
                                         onValueChange={prefix => this.props.namePrefixChanged(prefix)}
                                     >
-                                        <Picker.Item style={styles.pickerItemStyle}  label='กรุณาเลือกคำนำหน้าชือ' value='' />
+                                        <Picker.Item style={styles.pickerItemStyle} label='กรุณาเลือกคำนำหน้าชือ' value='' />
                                         {this.namePrefixListItem()}
                                     </Picker>
 
@@ -620,7 +679,7 @@ class UserProfileScreen extends React.Component<Props>{
                     {/**หน้ารอ GPS */}
                     <Overlay
                         isVisible={this.state.isGPSLoadingVisible}
-                        overlayStyle={{ width: 'auto', height: 'auto', borderRadius: 20 ,backgroundColor: 'rgba(255, 255, 255, 0.5)',}}
+                        overlayStyle={{ width: 'auto', height: 'auto', borderRadius: 20, backgroundColor: 'rgba(255, 255, 255, 0.5)', }}
                     >
                         <ActivityIndicator size='large' color='green' animating={this.state.isGPSLoadingVisible} />
                     </Overlay>
@@ -679,9 +738,9 @@ class UserProfileScreen extends React.Component<Props>{
 //รับ state ปัจจุบัน แล้ว return เป็น object 
 //จากเดิม state เป็น ({auth}) เพราะใช้หลักการ Destructuring
 const mapStateToProps = (state: any) => {
-    const { namePrefix, name, surName, tel, address, userProfileExists, userProfileLoading, userProfileAddLoading, userProfileEditLoading, userProfileErrMessage, userProfileEditErrMessage } = state.userProfile;//state ที่ต้องการใช้เอามาบางส่วนได้
+    const { namePrefix, name, surName, tel, address, userProfileExists, userProfileLoading, userProfileAddLoading, userProfileEditLoading, userProfileErrMessage, userProfileEditErrMessage, expoPushToken } = state.userProfile;//state ที่ต้องการใช้เอามาบางส่วนได้
     //ถ้า return {email:email} จะเขียนได้เป็น {email} ได้สำหรับ object
-    return { namePrefix, name, surName, tel, address, userProfileExists, userProfileLoading, userProfileAddLoading, userProfileEditLoading, userProfileErrMessage, userProfileEditErrMessage };
+    return { namePrefix, name, surName, tel, address, userProfileExists, userProfileLoading, userProfileAddLoading, userProfileEditLoading, userProfileErrMessage, userProfileEditErrMessage, expoPushToken };
 };
 //connect ให้ทั้ง state และ action เป็น props ของ LoginForm 
 //As the second argument passed in to connect, mapDispatchToProps is used for dispatching actions to the store.

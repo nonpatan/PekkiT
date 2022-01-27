@@ -7,7 +7,7 @@ import { ButtonTheme } from '../../components/ButtonTheme';
 import _ from 'lodash';
 import { connect } from 'react-redux';
 import {
-    jobShowDetailById, jobCancel, jobConfirm,resetLoading
+    jobShowDetailById, jobCancel, jobConfirm, resetLoading
 } from '../../redux/actions/index';
 import Colors from '../../constants/Colors';
 
@@ -26,7 +26,7 @@ interface Props {
     isJobCancel_Err: any,
     jobCancel_ErrMessage: any,
     jobConfirm_ErrMessage: any,
-    resetLoading:any,
+    resetLoading: any,
 }
 
 class JobDetailScreen extends React.Component<Props>{
@@ -77,11 +77,11 @@ class JobDetailScreen extends React.Component<Props>{
     }
 
     /**เมื่อกดยกเลิกงาน */
-    onCancel = () => {
+    onCancel = (jobName: String) => {
         //ยกเลิกงาน
         if (this.state.jobID !== '') {
             //ยกเลิกการจอง
-            this.props.jobCancel(this.state.jobID, this.state.selectedIndex);
+            this.props.jobCancel(this.state.jobID, this.state.selectedIndex, this.props.jobSelected.customerSelected, jobName);
         }
         else {
             Alert.alert('มีข้อผิดพลาด', 'ไม่มีรหัสงาน');
@@ -90,14 +90,11 @@ class JobDetailScreen extends React.Component<Props>{
     }
 
     /**เมื่อกดยืนยัน */
-    onConfirm = () => {
+    onConfirm = (jobName: String) => {
         //ปิดงาน
         if (this.state.jobID !== '') {
-
             //รับงาน
-            this.props.jobConfirm(this.state.jobID, this.state.selectedIndex,);
-
-
+            this.props.jobConfirm(this.state.jobID, this.state.selectedIndex, this.props.jobSelected.customerSelected, jobName);
         }
         else {
             Alert.alert('มีข้อผิดพลาด', 'ไม่มีรหัสงาน');
@@ -105,7 +102,7 @@ class JobDetailScreen extends React.Component<Props>{
     }
 
     render() {
-        
+
         return (
             <ScrollView>
                 {
@@ -197,13 +194,13 @@ class JobDetailScreen extends React.Component<Props>{
                                                         <View>
                                                             <ButtonTheme
                                                                 title='ยืนยันรับงาน'
-                                                                onPress={this.onConfirm.bind(this)}
+                                                                onPress={this.onConfirm.bind(this, this.props.jobSelected.serviceSelected.name)}
                                                                 loading={this.props.jobConfirm_loading}
                                                             />
                                                             <Text>{this.props.isJobConfirm_Err ? (this.props.jobConfirm_ErrMessage) : ("")}</Text>
                                                             <ButtonTheme
                                                                 title='ยกเลิกรับงาน'
-                                                                onPress={this.onCancel.bind(this)}
+                                                                onPress={this.onCancel.bind(this, this.props.jobSelected.serviceSelected.name)}
                                                                 loading={this.props.jobCancel_loading}
                                                             />
                                                             <Text>{this.props.isJobCancel_Err ? (this.props.jobCancel_ErrMessage) : ("")}</Text>
@@ -263,7 +260,7 @@ class JobDetailScreen extends React.Component<Props>{
                                         </CardTheme>
 
                                         <CardTheme>
-                                            <CardTitle style={styles.cardTitleStyle}>ช่างที่เลือก</CardTitle>
+                                            <CardTitle style={styles.cardTitleStyle}>ข้อมูลลูกค้า</CardTitle>
                                             <CardDivider />
                                             <View>
                                                 {
@@ -321,13 +318,13 @@ class JobDetailScreen extends React.Component<Props>{
                                                         <View>
                                                             <ButtonTheme
                                                                 title='ยืนยันรับงาน'
-                                                                onPress={this.onConfirm.bind(this)}
+                                                                onPress={this.onConfirm.bind(this, this.props.jobSelected.repairSelected.name)}
                                                                 loading={this.props.jobConfirm_loading}
                                                             />
                                                             <Text>{this.props.isJobConfirm_Err ? (this.props.jobConfirm_ErrMessage) : ("")}</Text>
                                                             <ButtonTheme
                                                                 title='ยกเลิกรับงาน'
-                                                                onPress={this.onCancel.bind(this)}
+                                                                onPress={this.onCancel.bind(this, this.props.jobSelected.repairSelected.name)}
                                                                 loading={this.props.jobCancel_loading}
                                                             />
                                                             <Text>{this.props.isJobCancel_Err ? (this.props.jobCancel_ErrMessage) : ("")}</Text>
@@ -375,7 +372,7 @@ const mapStateToProps = (state: any) => {
 //connect ให้ทั้ง state และ action เป็น props ของ LoginForm 
 //As the second argument passed in to connect, mapDispatchToProps is used for dispatching actions to the store.
 export default connect(mapStateToProps, {
-    jobShowDetailById, jobCancel, jobConfirm,resetLoading,
+    jobShowDetailById, jobCancel, jobConfirm, resetLoading,
 })(JobDetailScreen);
 
 const styles = StyleSheet.create({

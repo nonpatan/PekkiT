@@ -32,5 +32,5 @@ export const ListItemTitle = (props: any) => {
     let colorTitle = '';
     colorTitle = Colors[color].text;
 
-    return <ListItem.Title {...props} style={[props.style, { color: colorTitle, fontFamily: 'Kanit-Light', }]} />
+    return <ListItem.Title {...props} style={[{ color: colorTitle, fontFamily: 'Kanit-Light', },props.style,]} />
 }

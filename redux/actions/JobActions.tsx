@@ -12,6 +12,7 @@ import {
     JOB_CONFIRM_SUCCESS,
     JOB_CONFIRM_FAIL,
     JOB_DETAIL_RESET_LOADING,
+    JOB_SET_SELECTED_INDEX,
 } from '../types';
 import _ from 'lodash';
 import fireBaseConnect from '../actions/FireBaseConnect';
@@ -21,8 +22,11 @@ import firebase from 'firebase';
 
 export const jobsShowList = (jobType: number) => {
     return async (dispatch: any) => {
+
         //กำหนดค่าเริ่มต้น
         jobShowList_init(dispatch);
+
+        console.log(`jobsShowList ${jobType}`);
 
         try {
             const user = firebase.auth().currentUser;
@@ -36,6 +40,11 @@ export const jobsShowList = (jobType: number) => {
                     const serviceRef = rootRef.child('serviceBooking');
                     const query = serviceRef.orderByChild('technicianID').equalTo(user.uid);
                     query.on('value', async snapshot => {
+
+                        jobShowList_Set_SelectedIndex(dispatch, jobType);
+
+                        console.log(`บริการ ${jobType}`);
+
                         if (snapshot.exists()) {
                             data = snapshot.val();
                             if ((data !== 'ไม่มีข้อมูล') && (data !== undefined)) {
@@ -80,6 +89,11 @@ export const jobsShowList = (jobType: number) => {
                     const serviceRef = rootRef.child('serviceBooking');
                     const query = serviceRef.orderByChild('technicianID').equalTo(user.uid);
                     query.on('value', async snapshot => {
+
+                        jobShowList_Set_SelectedIndex(dispatch, jobType);
+
+                        console.log(`ประวัติบริการ ${jobType}`);
+
                         if (snapshot.exists()) {
                             data = snapshot.val();
                             if ((data !== 'ไม่มีข้อมูล') && (data !== undefined)) {
@@ -123,6 +137,11 @@ export const jobsShowList = (jobType: number) => {
                     const serviceRef = rootRef.child('repairBooking');
                     const query = serviceRef.orderByChild('technicianID').equalTo(user.uid);
                     query.on('value', async snapshot => {
+
+                        jobShowList_Set_SelectedIndex(dispatch, jobType);
+
+                        console.log(`ซ่อม ${jobType}`);
+
                         if (snapshot.exists()) {
                             data = snapshot.val();
                             if ((data !== 'ไม่มีข้อมูล') && (data !== undefined)) {
@@ -167,6 +186,11 @@ export const jobsShowList = (jobType: number) => {
                     const serviceRef = rootRef.child('repairBooking');
                     const query = serviceRef.orderByChild('technicianID').equalTo(user.uid);
                     query.on('value', async snapshot => {
+
+                        jobShowList_Set_SelectedIndex(dispatch, jobType);
+
+                        console.log(`ประวัติซ่อม ${jobType}`);
+
                         if (snapshot.exists()) {
                             data = snapshot.val();
                             if ((data !== 'ไม่มีข้อมูล') && (data !== undefined)) {
@@ -207,7 +231,7 @@ export const jobsShowList = (jobType: number) => {
                 jobShowList_fail(dispatch, 'ไม่มี currentUser');
             }
         }
-        catch (err) {
+        catch (err: any) {
             jobShowList_fail(dispatch, err.message);
         }
     }
@@ -299,7 +323,7 @@ export const jobShowDetailById = (jobID: any, selectedIndex: number) => {
                 //////////////////////////////////////////////////////////////////////////////
             }
         }
-        catch (err) {
+        catch (err: any) {
             //Alert.alert('มีข้อผิดพลาด', err.message);
             jobShowDetailErr(dispatch, err.message);
         }
@@ -307,15 +331,18 @@ export const jobShowDetailById = (jobID: any, selectedIndex: number) => {
 }
 
 /**ทำการยกเลิกงาน โดยกำหนดค่าสถานะ ยกเลิก ที่ฐานข้อมูลของงานนั้นๆ */
-export const jobCancel = (jobID: any, selectedIndex: number) => {
+export const jobCancel = (jobID: any, selectedIndex: number, customerSelected: any, jobName: String) => {
     return async (dispatch: any) => {
         //ทำการยกเลิกการจอง
         jobCancel_init(dispatch);
         try {
+            //ทำการดึงข้อมูล user
+            const user = firebase.auth().currentUser;
             if ((selectedIndex == 0) || (selectedIndex == 2)) {
                 /////////////////ส่วนบริการ//////////////////
                 let jobCancelStatus = await fireBaseConnect.setStatusJob(jobID, 'serviceBooking', 'serviceStatus', 'ไม่สามารถรับงานได้');
                 if (jobCancelStatus == 'เสร็จสิ้น') {
+                    fireBaseConnect.sendPushNotification(customerSelected.expoPushToken, `งานบริการ : ${jobName}`, `รหัสการจอง : ${jobID} \nสถานะ : ไม่สามารถรับงานได้`);
                     jobCancelSuccess(dispatch);
                 }
             }
@@ -323,27 +350,29 @@ export const jobCancel = (jobID: any, selectedIndex: number) => {
                 /////////////////ส่วนซ่อม//////////////////
                 let jobCancelStatus = await fireBaseConnect.setStatusJob(jobID, 'repairBooking', 'repairStatus', 'ไม่สามารถรับงานได้');
                 if (jobCancelStatus == 'เสร็จสิ้น') {
+                    fireBaseConnect.sendPushNotification(customerSelected.expoPushToken, `งานซ่อม : ${jobName}`, `รหัสการจอง : ${jobID} \nสถานะ : ไม่สามารถรับงานได้`);
                     jobCancelSuccess(dispatch);
                 }
             }
         }
-        catch (err) {
+        catch (err: any) {
             jobCancelFail(dispatch, err.message);
         }
     }
 }
 
 /**รับงาน โดยกำหนดสถานะยืนยัน */
-export const jobConfirm = (jobID: any, selectedIndex: number,) => {
+export const jobConfirm = (jobID: any, selectedIndex: number, customerSelected: any, jobName: String) => {
     return async (dispatch: any) => {
         //ทำการปิดงาน
         jobConfirm_init(dispatch);
-
         try {
+            const user = firebase.auth().currentUser;
             if ((selectedIndex == 0) || (selectedIndex == 2)) {
                 /////////////////ส่วนบริการ//////////////////
                 let jobCancelStatus = await fireBaseConnect.setStatusJob(jobID, 'serviceBooking', 'serviceStatus', 'รอดำเนินการ');
                 if (jobCancelStatus == 'เสร็จสิ้น') {
+                    fireBaseConnect.sendPushNotification(customerSelected.expoPushToken, `งานบริการ : ${jobName}`, `รหัสการจอง : ${jobID} \nสถานะ : รอดำเนินการ`);
                     jobConfirm_Success(dispatch);
                 }
 
@@ -352,12 +381,13 @@ export const jobConfirm = (jobID: any, selectedIndex: number,) => {
                 /////////////////ส่วนซ่อม//////////////////
                 let jobCancelStatus = await fireBaseConnect.setStatusJob(jobID, 'repairBooking', 'repairStatus', 'รอดำเนินการ');
                 if (jobCancelStatus == 'เสร็จสิ้น') {
+                    fireBaseConnect.sendPushNotification(customerSelected.expoPushToken, `งานซ่อม : ${jobName}`, `รหัสการจอง : ${jobID} \nสถานะ : รอดำเนินการ`);
                     jobConfirm_Success(dispatch);
                 }
 
             }
         }
-        catch (err) {
+        catch (err: any) {
             jobConfirm_Fail(dispatch, err.message);
         }
     }
@@ -374,6 +404,13 @@ export const resetLoading = () => {
 const jobShowList_init = (dispatch: any) => {
     dispatch({
         type: JOB_LOADING_INIT,
+    })
+}
+
+const jobShowList_Set_SelectedIndex = (dispatch: any, value: any) => {
+    dispatch({
+        type: JOB_SET_SELECTED_INDEX,
+        payload: value,
     })
 }
 
